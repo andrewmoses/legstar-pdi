@@ -1,0 +1,136 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.legsem.legstar</groupId>
+    <artifactId>legstar.pdi</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <relativePath>..</relativePath>
+  </parent>
+  <artifactId>legstar.pdi.zosfile</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>legstar.pdi.zosfile</name>
+  <description>A PDI step plugin to read z/OS binary files</description>
+  <url>http://www.legsem.com/legstar/pdi</url>
+
+  <dependencies>
+
+    <!-- PDI dependencies -->
+    <dependency>
+      <groupId>pentaho.kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>pentaho.kettle</groupId>
+      <artifactId>kettle-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>pentaho.kettle</groupId>
+      <artifactId>kettle-db</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>pentaho.kettle</groupId>
+      <artifactId>kettle-ui-swt</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-vfs</groupId>
+      <artifactId>commons-vfs</artifactId>
+    </dependency>
+
+    <!-- Scannotation dependencies -->
+    <dependency>
+      <groupId>net.sf.scannotation</groupId>
+      <artifactId>scannotation</artifactId>
+    </dependency>
+
+    <!-- Eclipse dependencies -->
+    <dependency>
+      <groupId>org.eclipse.swt</groupId>
+      <artifactId>org.eclipse.swt.win32.win32.x86</artifactId>
+    </dependency>
+
+    <!-- LegStar dependencies -->
+    <dependency>
+      <groupId>com.legsem.legstar</groupId>
+      <artifactId>legstar-coxbrt</artifactId>
+    </dependency>
+
+   <!-- 
+     TEST dependencies
+    -->
+    <dependency>
+      <groupId>${groupId}</groupId>
+      <artifactId>legstar.pdi.sample.tcobwvb</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>pentaho.kettle</groupId>
+      <artifactId>kettle-test</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.legsem.legstar</groupId>
+      <artifactId>legstar-coxbgen-cases</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+  </dependencies>
+  
+  <build>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId> 
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+                <goal>attached</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}</finalName>
+              <descriptors>
+                <descriptor>assembly.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+        
+          <!-- Deploy zip file to pdi. -->
+          <execution>
+            <id>integration-tests</id>
+            <phase>integration-test</phase>
+            <configuration>
+              <tasks>
+                <property environment="env"/>
+                <unzip src="${project.build.directory}/${project.artifactId}.zip"
+                  dest="${env.KETTLE_DIR}/plugins/steps"
+                  overwrite="true"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
+        </executions>
+      </plugin>
+
+    </plugins>
+
+  </build>
+  
+</project>

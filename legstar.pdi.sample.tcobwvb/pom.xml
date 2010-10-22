@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.legsem.legstar</groupId>
+    <artifactId>legstar.pdi</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <relativePath>..</relativePath>
+  </parent>
+  <artifactId>legstar.pdi.sample.tcobwvb</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>legstar.pdi.sample.tcobwvb</name>
+  <description>A sample LegStar Transformer and binary files to use with PDI</description>
+  <url>http://www.legsem.com/legstar/pdi</url>
+
+  <dependencies>
+
+    <!-- LegStar dependencies -->
+    <dependency>
+      <groupId>com.legsem.legstar</groupId>
+      <artifactId>legstar-coxbrt</artifactId>
+    </dependency>
+
+   <!-- 
+     TEST dependencies
+    -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+    <!-- Apache commons IO  -->    
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>1.4</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+</project>

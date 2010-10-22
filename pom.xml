@@ -1,0 +1,316 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- legstar.pdi parent pom -->
+
+  <groupId>com.legsem.legstar</groupId>
+  <artifactId>legstar.pdi</artifactId>
+  <version>0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>legstar.pdi</name>
+  <description>Mainframe transformations for Pentaho Data Integration based on open-source LegStar</description>
+  <url>http://www.legsem.com/legstar/pdi</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <pdi.version>4.0.1-GA</pdi.version>
+    <legstar.version>1.4.0</legstar.version>
+    <eclipse.version>3.2.1</eclipse.version>
+  </properties>
+
+  <organization>
+    <name>LegSem</name>
+    <url>http://www.legsem.com/</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License</name>
+      <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>fady</id>
+      <name>Fady Moussallam</name>
+      <email>fady@legsem.com</email>
+      <organization>Legsem.com</organization>
+      <roles>
+          <role>Project despot</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
+  <issueManagement>
+    <system>Google Code Issue Tracking</system>
+    <url>http://code.google.com/p/legstar-pdi/issues/list</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:svn:http://legstar-pdi.googlecode.com/svn/trunk</connection>
+    <developerConnection>scm:svn:https://legstar-pdi.googlecode.com/svn/trunk</developerConnection>
+    <url>http://legstar-pdi.googlecode.com/svn/trunk</url>
+  </scm>
+
+  <mailingLists>
+    <mailingList>
+      <name>LegStar users mailing list</name>
+      <subscribe>http://groups.google.com/group/legstar-user/subscribe</subscribe>
+      <unsubscribe>http://groups.google.com/group/legstar-user/subscribe</unsubscribe>
+      <post>legstar-user@googlegroups.com</post>
+      <archive>http://groups.google.com/group/legstar-user/topics</archive>
+    </mailingList>
+    <mailingList>
+      <name>LegStar dev mailing list</name>
+      <subscribe>http://groups.google.com/group/legstar-dev/subscribe</subscribe>
+      <unsubscribe>http://groups.google.com/group/legstar-dev/subscribe</unsubscribe>
+      <post>legstar-dev@googlegroups.com</post>
+      <archive>http://groups.google.com/group/legstar-dev/topics</archive>
+    </mailingList>
+  </mailingLists>
+
+  <distributionManagement>
+    <downloadUrl>http://www.legsem.com/legstar/maven/repo/</downloadUrl>
+    <site>
+        <id>local.website</id>
+        <name>Local Website</name>
+        <url>file:///${legstar-dev-website-local-dir}/legstar-pdi</url>
+    </site>
+    <repository>
+        <id>ftp-release-repository</id>
+        <name>LEGSTAR Distributions Repository</name>
+        <url>ftp://ftp.legsem.com/public_html/legstar/maven/repo</url>
+    </repository>
+    <snapshotRepository>
+        <id>ftp-snapshots-repository</id>
+        <name>LEGSTAR Distributions Snapshot Repository</name>
+        <url>ftp://ftp.legsem.com/public_html/legstar/maven/snapshots</url>
+        <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>pentaho-repo</id>
+      <url>http://repo.pentaho.org/artifactory/pentaho/</url>
+    </repository>
+    <repository>
+      <id>pentaho-third-party</id>
+      <url>http://repo.pentaho.org/artifactory/third-party/</url>
+    </repository>
+    <repository>
+      <id>legstar-distribution</id>
+      <url>http://www.legsem.com/legstar/maven/repo</url>
+    </repository>
+  </repositories>
+
+  <modules>
+    <module>legstar.pdi.zosfile</module>
+    <module>legstar.pdi.sample.tcobwvb</module>
+  </modules>
+
+  <build>
+
+    <extensions>
+
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ftp</artifactId>
+        <version>1.0-beta-2</version>
+      </extension>
+
+    </extensions>
+
+    <pluginManagement>
+
+      <plugins>
+
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.5</source>
+            <target>1.5</target>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2-beta-5</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.0-beta-9</version>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-source-plugin</artifactId> 
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+           </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>2.0.1</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.apache.maven.doxia</groupId>
+              <artifactId>doxia-module-docbook-simple</artifactId>
+              <version>1.0</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>com.agilejava.docbkx</groupId>
+          <artifactId>docbkx-maven-plugin</artifactId>
+          <version>2.0.11</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.docbook</groupId>
+              <artifactId>docbook-xml</artifactId>
+              <version>4.4</version>
+              <scope>runtime</scope>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <xincludeSupported>true</xincludeSupported>
+            <chunkedOutput>true</chunkedOutput>
+            <entities>
+              <entity>
+                <name>version</name>
+                <value>${pom.version}</value>
+              </entity>
+              <entity>
+                <name>year</name>
+                <value>2010</value>
+              </entity>
+            </entities>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.1</version>
+        </plugin>
+
+      </plugins>
+
+    </pluginManagement>
+
+  </build>
+
+  <dependencyManagement>
+
+    <dependencies>
+
+      <!-- Inter modules dependencies -->    
+      <dependency>
+        <groupId>${groupId}</groupId>
+        <artifactId>legstar.pdi.sample.tcobwvb</artifactId>
+        <version>${version}</version>
+      </dependency>
+
+
+      <!-- PDI dependencies -->
+      <dependency>
+        <groupId>pentaho.kettle</groupId>
+        <artifactId>kettle-core</artifactId>
+        <version>${pdi.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>pentaho.kettle</groupId>
+        <artifactId>kettle-engine</artifactId>
+        <version>${pdi.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>pentaho.kettle</groupId>
+        <artifactId>kettle-db</artifactId>
+        <version>${pdi.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>pentaho.kettle</groupId>
+        <artifactId>kettle-ui-swt</artifactId>
+        <version>${pdi.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>commons-vfs</groupId>
+        <artifactId>commons-vfs</artifactId>
+        <version>20091118-pentaho</version>
+        <scope>provided</scope>
+      </dependency>
+  
+      <!-- Scannotation dependencies -->
+      <dependency>
+        <groupId>net.sf.scannotation</groupId>
+        <artifactId>scannotation</artifactId>
+        <version>1.0.2</version>
+        <scope>provided</scope>
+      </dependency>
+  
+      <!-- Eclipse dependencies -->
+      <dependency>
+        <groupId>org.eclipse.swt</groupId>
+        <artifactId>org.eclipse.swt.win32.win32.x86</artifactId>
+        <version>${eclipse.version}</version>
+        <scope>provided</scope>
+      </dependency>
+  
+      <!-- LegStar dependencies -->
+      <dependency>
+        <groupId>com.legsem.legstar</groupId>
+        <artifactId>legstar-coxbrt</artifactId>
+        <version>${legstar.version}</version>
+      </dependency>
+  
+     <!--
+       TEST dependencies
+      -->
+      <dependency>
+        <groupId>pentaho.kettle</groupId>
+        <artifactId>kettle-test</artifactId>
+        <version>${pdi.version}</version>
+        <scope>test</scope>
+      </dependency>
+  
+      <dependency>
+        <groupId>com.legsem.legstar</groupId>
+        <artifactId>legstar-coxbgen-cases</artifactId>
+        <version>${legstar.version}</version>
+        <scope>test</scope>
+      </dependency>
+  
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>3.8.1</version>
+        <scope>test</scope>
+      </dependency>
+
+    </dependencies>
+
+  </dependencyManagement>
+
+</project>

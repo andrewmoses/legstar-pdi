@@ -1,0 +1,45 @@
+<!--
+Assembly descriptor for the full distribution.
+-->
+<assembly>
+    <id></id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+
+    <fileSets>
+        <!-- Copy pdi plugin descriptor -->
+        <fileSet>
+            <directory>src/main/resources</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.xml</include>
+                <include>*.png</include>
+            </includes>
+        </fileSet>
+
+        <!-- Copy over the jar -->
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+    
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>/</outputDirectory>
+            <excludes>
+                <exclude>org.pentaho:*</exclude> 
+                <exclude>org.eclipse.swt:*</exclude> 
+                <exclude>log4j:*</exclude> 
+                <exclude>org.codehaus.jackson:*</exclude> 
+                <exclude>commons-logging:*</exclude> 
+            </excludes>
+        </dependencySet>
+    </dependencySets>
+    
+</assembly>
