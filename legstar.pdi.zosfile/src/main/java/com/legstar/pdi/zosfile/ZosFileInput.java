@@ -1,7 +1,6 @@
 package com.legstar.pdi.zosfile;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -14,7 +13,9 @@ import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
 
+import com.legstar.coxb.transform.HostTransformStatus;
 import com.legstar.pdi.CobolToPdi;
+import com.legstar.pdi.ZosFileInputStreamFactory;
 
 
 /**
@@ -29,9 +30,10 @@ public class ZosFileInput extends BaseStep implements StepInterface {
 	private ZosFileInputData data;
 	private ZosFileInputMeta meta;
 	
-	public ZosFileInput(StepMeta s, StepDataInterface stepDataInterface, int c, TransMeta t, Trans dis) {
-		super(s, stepDataInterface, c, t, dis);
-	}
+    public ZosFileInput(StepMeta s, StepDataInterface stepDataInterface, int c,
+            TransMeta t, Trans dis) {
+        super(s, stepDataInterface, c, t, dis);
+    }
 
 	/**
 	 * Step is initialized.
@@ -93,38 +95,43 @@ public class ZosFileInput extends BaseStep implements StepInterface {
 			data.outputRowMeta = new RowMeta();
 			meta.getFields(data.outputRowMeta, getStepname(), null, null, this);
 			
-    		try {
-				data.fis = new FileInputStream(new File(data.filename));
-				data.hostRecord = new byte[CobolToPdi.hostByteLength(data.tf)];
-			} catch (FileNotFoundException e) {
-				throw new KettleException(e);
-			}
+            try {
+                data.fis = ZosFileInputStreamFactory.create(meta, new File(
+                        data.filename));
+                data.hostRecord = new byte[CobolToPdi.hostByteLength(data.tf)];
+                data.status = new HostTransformStatus();
+            } catch (FileNotFoundException e) {
+                throw new KettleException(e);
+            }
 
 			logBasic(BaseMessages.getString(PKG,
 					"ZosFileInput.FileOpened.Message", data.filename));
 
 		}
 
-		try {
-			int count = data.fis.read(data.hostRecord);
-			
-			if (count > 0) {
-				Object[] outputRowData = CobolToPdi.toOutputRowData(
-						data.outputRowMeta, data.tf, data.hostRecord);
-				putRow(data.outputRowMeta, outputRowData);
-				if (checkFeedback(getLinesRead())) {
-					logBasic(BaseMessages.getString(PKG,
-							"ZosFileInput.LinesRead.Message", getLinesRead(),
-							data.filename));
-				}
+        try {
+            // Tell the reader how many bytes we processed last time
+            int count = data.fis.read(data.hostRecord,
+                    data.status.getHostBytesProcessed());
 
-			} else {
-				setOutputDone();
-				return false;
-			}
-		} catch (IOException e) {
-			throw new KettleException(e);
-		}
+            if (count > 0) {
+                Object[] outputRowData = CobolToPdi.toOutputRowData(
+                        data.outputRowMeta, data.tf, data.hostRecord,
+                        data.status);
+                putRow(data.outputRowMeta, outputRowData);
+                if (checkFeedback(getLinesRead())) {
+                    logBasic(BaseMessages.getString(PKG,
+                            "ZosFileInput.LinesRead.Message", getLinesRead(),
+                            data.filename));
+                }
+
+            } else {
+                setOutputDone();
+                return false;
+            }
+        } catch (IOException e) {
+            throw new KettleException(e);
+        }
 
 		return true;
 	}

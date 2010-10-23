@@ -1,12 +1,12 @@
 package com.legstar.pdi.zosfile;
 
-import java.io.FileInputStream;
-
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
 import com.legstar.coxb.transform.AbstractTransformers;
+import com.legstar.coxb.transform.HostTransformStatus;
+import com.legstar.pdi.io.ZosFileInputStream;
 
 /**
  * Each thread have a separate instance of this class. So this class is
@@ -19,9 +19,11 @@ public class ZosFileInputData extends BaseStepData implements StepDataInterface 
 
 	public String filename;
 	
-	public String jaxbQualifiedClassname;
+    public String jaxbQualifiedClassname;
 	
-	public FileInputStream fis;
+	public ZosFileInputStream fis;
+	
+	public HostTransformStatus status;
 
 	AbstractTransformers tf;
 	byte[] hostRecord;

@@ -1,0 +1,24 @@
+PDI       Java          
+---------------------
+String    String        
+Integer   Long          
+Number    Double        
+Date      Date          
+BigNumber BigDecimal    
+Boolean   Boolean       
+Binary    byte[]     
+
+
+LegStar                      PDI         
+-------------------------------------               
+String                       String       
+Numeric fractionDigits > 0   BigNumber          
+numeric fractionDigits == 0  Integer           
+Float                        Number
+Double                       Number         
+OctetStream                  Binary   
+
+Unsupported LegStar types:
+-------------------------
+Variable size arrays
+Redefines      

@@ -8,17 +8,21 @@ Assembly descriptor for the full distribution.
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory>
 
-    <fileSets>
-        <!-- Copy pdi plugin descriptor -->
-        <fileSet>
-            <directory>src/main/resources</directory>
-            <outputDirectory>/</outputDirectory>
-            <includes>
-                <include>*.xml</include>
-                <include>*.png</include>
-            </includes>
-        </fileSet>
+    <files>
+        <!-- Copy plugin ICON -->
+        <file>
+          <source>src/main/resources/ZOSFIN.png</source>
+          <outputDirectory>/</outputDirectory>
+        </file>
+        <!-- Copy plugin descriptor -->
+        <file>
+          <source>src/main/resources/plugin.xml</source>
+          <outputDirectory>/</outputDirectory>
+          <filtered>true</filtered>
+        </file>
+    </files>
 
+    <fileSets>
         <!-- Copy over the jar -->
         <fileSet>
             <directory>${project.build.directory}</directory>
@@ -38,7 +42,14 @@ Assembly descriptor for the full distribution.
                 <exclude>log4j:*</exclude> 
                 <exclude>org.codehaus.jackson:*</exclude> 
                 <exclude>commons-logging:*</exclude> 
+                <exclude>com.legsem.legstar:legstar.pdi.sample.tcobwvb:*</exclude> 
             </excludes>
+        </dependencySet>
+        <dependencySet>
+            <outputDirectory>/lib</outputDirectory>
+            <includes>
+                <include>com.legsem.legstar:legstar.pdi.sample.tcobwvb:*</include> 
+            </includes>
         </dependencySet>
     </dependencySets>
     

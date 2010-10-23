@@ -15,6 +15,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <pdi.version>4.0.1-GA</pdi.version>
     <legstar.version>1.4.0</legstar.version>
     <eclipse.version>3.2.1</eclipse.version>
@@ -154,18 +155,6 @@
         </plugin>
 
         <plugin>
-          <artifactId>maven-source-plugin</artifactId> 
-          <executions>
-            <execution>
-              <phase>package</phase>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-           </executions>
-        </plugin>
-
-        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>2.0.1</version>
@@ -215,6 +204,36 @@
       </plugins>
 
     </pluginManagement>
+
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+          <id>aggregate-sources</id>
+          <phase>verify</phase>
+          <goals>
+            <goal>aggregate</goal>
+          </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <inherited>true</inherited>
+        <executions>
+          <execution>
+          <id>project-sources</id>
+          <goals>
+            <goal>jar</goal>
+          </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
 
   </build>
 

@@ -39,8 +39,20 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
 	/** Used to serialize/deserialize the file name from XML. */
 	public static final String FILENAME_TAG = "filename";
+	
+    /** Are the z/OS file records variable length. */
+    private boolean _isVariableLength;
 
-	/** Fields from a z/OS file record. */
+    /** Used to serialize/deserialize isVariableLength from XML. */
+    public static final String ISVARIABLELENGTH_TAG = "isvariablelength";
+
+    /** Does the z/OS file records start with an RDW?. */
+	private boolean _hasRecordDescriptorWord;
+
+    /** Used to serialize/deserialize hasRecordDescriptorWord from XML. */
+    public static final String HASRECORDDESCRIPTORWORD_TAG = "hasrdw";
+    
+    /** Fields from a z/OS file record. */
 	private CobolFileInputField[] _inputFields;
 	
 	public ZosFileInputMeta() {
@@ -67,6 +79,40 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 	public void setFilename(String filename) {
 		_filename = filename;
 	}
+
+    /**
+     * Are the z/OS file records variable length
+     * @return true if the z/OS file records are fixed length
+     */
+    public boolean isVariableLength() {
+        return _isVariableLength;
+    }
+
+    /**
+     * Are the z/OS file records variable length
+     * @param isFixedRecord true if the z/OS file records are fixed length
+     */
+    public void setIsVariableLength(boolean isFixedRecord) {
+        _isVariableLength = isFixedRecord;
+    }
+
+    /**
+     * Does the z/OS file records start with an RDW?.
+     * @return true if z/OS file records start with a record descriptor word
+     */
+    public boolean hasRecordDescriptorWord() {
+        return _hasRecordDescriptorWord;
+    }
+
+    /**
+     * Does the z/OS file records start with an RDW?.
+     * 
+     * @param _hasRecordDescriptorWord true if z/OS file records start with a
+     *            record descriptor word
+     */
+    public void setHasRecordDescriptorWord(boolean hasRecordDescriptorWord) {
+        _hasRecordDescriptorWord = hasRecordDescriptorWord;
+    }
 
 	/**
 	 * @return the inputFields
@@ -120,7 +166,12 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 				XMLHandler.addTagValue(JAXBQUALIFIEDCLASSNAME_TAG, _jaxbQualifiedClassName));
 		retval.append("    ").append(
 				XMLHandler.addTagValue(FILENAME_TAG, _filename));
-		retval.append("    <fields>").append(Const.CR);
+        retval.append("    ").append(
+                XMLHandler.addTagValue(ISVARIABLELENGTH_TAG, _isVariableLength));
+        retval.append("    ").append(
+                XMLHandler.addTagValue(HASRECORDDESCRIPTORWORD_TAG, _hasRecordDescriptorWord));
+
+        retval.append("    <fields>").append(Const.CR);
 		for (int i = 0; i < _inputFields.length; i++) {
 			CobolFileInputField field = _inputFields[i];
 
@@ -170,9 +221,14 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 			Map<String, Counter> counters) throws KettleXMLException {
 
 		try {
-			_filename = XMLHandler.getTagValue(stepnode, FILENAME_TAG);
-			_jaxbQualifiedClassName = XMLHandler
-					.getTagValue(stepnode, JAXBQUALIFIEDCLASSNAME_TAG);
+            _jaxbQualifiedClassName = XMLHandler
+                    .getTagValue(stepnode, JAXBQUALIFIEDCLASSNAME_TAG);
+            _filename = XMLHandler.getTagValue(stepnode, FILENAME_TAG);
+            _isVariableLength = "Y".equalsIgnoreCase(XMLHandler
+                    .getTagValue(stepnode, ISVARIABLELENGTH_TAG));
+            _hasRecordDescriptorWord = "Y".equalsIgnoreCase(XMLHandler
+                    .getTagValue(stepnode, HASRECORDDESCRIPTORWORD_TAG));
+
 			Node fields = XMLHandler.getSubNode(stepnode, "fields");
 			int nFields = XMLHandler.countNodes(fields, "field");
 
@@ -217,11 +273,15 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 			List<DatabaseMeta> databases, Map<String, Counter> counters)
 			throws KettleException {
 		try {
-			_jaxbQualifiedClassName = rep.getStepAttributeString(id_step,
-					JAXBQUALIFIEDCLASSNAME_TAG);
-			_filename = rep.getStepAttributeString(id_step, FILENAME_TAG);
-			int nFields = rep.countNrStepAttributes(id_step, "field_name");
+            _jaxbQualifiedClassName = rep.getStepAttributeString(id_step,
+                    JAXBQUALIFIEDCLASSNAME_TAG);
+            _filename = rep.getStepAttributeString(id_step, FILENAME_TAG);
+            _isVariableLength = rep.getStepAttributeBoolean(id_step,
+                    "ISFIXEDRECORD_TAG");
+            _hasRecordDescriptorWord = rep.getStepAttributeBoolean(id_step,
+                    "HASRECORDDESCRIPTORWORD_TAG");
 
+			int nFields = rep.countNrStepAttributes(id_step, "field_name");
 			_inputFields = new CobolFileInputField[nFields];
 
 			for (int i = 0; i < nFields; i++) {
@@ -258,10 +318,15 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 	public void saveRep(Repository rep, ObjectId id_transformation,
 			ObjectId id_step) throws KettleException {
 		try {
-			rep.saveStepAttribute(id_transformation, id_step,
-					JAXBQUALIFIEDCLASSNAME_TAG, _jaxbQualifiedClassName);
-			rep.saveStepAttribute(id_transformation, id_step, FILENAME_TAG,
-					_filename);
+            rep.saveStepAttribute(id_transformation, id_step,
+                    JAXBQUALIFIEDCLASSNAME_TAG, _jaxbQualifiedClassName);
+            rep.saveStepAttribute(id_transformation, id_step, FILENAME_TAG,
+                    _filename);
+            rep.saveStepAttribute(id_transformation, id_step,
+                    ISVARIABLELENGTH_TAG, _isVariableLength);
+            rep.saveStepAttribute(id_transformation, id_step,
+                    HASRECORDDESCRIPTORWORD_TAG, _hasRecordDescriptorWord);
+
 			for (int i = 0; i < _inputFields.length; i++) {
 				CobolFileInputField field = _inputFields[i];
 

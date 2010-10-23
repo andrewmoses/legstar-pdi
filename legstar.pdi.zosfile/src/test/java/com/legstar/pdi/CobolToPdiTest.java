@@ -8,6 +8,7 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
 import com.legstar.coxb.host.HostData;
+import com.legstar.coxb.transform.HostTransformStatus;
 import com.legstar.pdi.CobolFileInputField;
 import com.legstar.pdi.CobolToPdi;
 import com.legstar.test.coxb.LsfileaeCases;
@@ -255,11 +256,14 @@ public class CobolToPdiTest extends TestCase {
 				null,
 				outputRowMeta);
 		
+		HostTransformStatus status = new HostTransformStatus();
 		Object[] outputRowData = CobolToPdi.toOutputRowData(
 				outputRowMeta,
 				new com.legstar.test.coxb.lsfileae.bind.DfhcommareaTransformers(),
-				HostData.toByteArray(LsfileaeCases.getHostBytesHex()));
+				HostData.toByteArray(LsfileaeCases.getHostBytesHex()),
+				status);
 
+        assertEquals(79, status.getHostBytesProcessed());
 		assertEquals(7, outputRowData.length);
 		assertEquals(100L, outputRowData[0]);
 		assertEquals("TOTO", (String) outputRowData[1]);

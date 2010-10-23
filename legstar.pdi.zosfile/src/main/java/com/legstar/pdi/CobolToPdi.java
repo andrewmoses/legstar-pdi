@@ -13,6 +13,9 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.plugins.KettleURLClassLoader;
 import org.pentaho.di.core.plugins.PluginFolder;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
@@ -44,6 +47,7 @@ import com.legstar.coxb.impl.reflect.ReflectBindingException;
 import com.legstar.coxb.transform.AbstractTransformer;
 import com.legstar.coxb.transform.AbstractTransformers;
 import com.legstar.coxb.transform.HostTransformException;
+import com.legstar.coxb.transform.HostTransformStatus;
 import com.legstar.coxb.transform.IHostToJavaTransformer;
 
 /**
@@ -58,8 +62,11 @@ public class CobolToPdi {
     /** An identifier for our lib class loader.*/
     public static final String LIB_CLASSLOADER_NAME = "legstar.pdi.lib";
     
+    /** The default plugin location. */
+    public static final String DEFAULT_PLUGIN_FOLDER = "plugins/steps/legstar.pdi.zosfile";
+    
     /** The relative location of our private lib folder. */
-    public static final String LIB_FOLDER = "/plugins/steps/legstar.pdi.proto/lib";
+    public static final String LIB_FOLDER = "lib";
     
     /** The JAXB/COBOL Legstar classes should be annotated with this. */
     public static final String LEGSTAR_ANNOTATIONS = "com.legstar.coxb.CobolElement";
@@ -375,32 +382,40 @@ public class CobolToPdi {
 		}
 	}
 
-	/**
-	 * Creates a PDI output row from host data.
-	 * 
-	 * @param outputRowMeta
-	 *            the output row meta data.
-	 * @param tf
-	 *            a host transformer
-	 * @param hostRecord
-	 *            the host data
-	 * @return a PDI output row of data
-	 * @throws KettleException
-	 *             if transformation fails
-	 */
+    /**
+     * Creates a PDI output row from host data.
+     * 
+     * @param outputRowMeta
+     *            the output row meta data.
+     * @param tf
+     *            a host transformer
+     * @param hostRecord
+     *            the host data
+     * @param status
+     *            additional info on the COBOL to Java transformation process
+     * @return a PDI output row of data
+     * @throws KettleException
+     *             if transformation fails
+     */
 	public static Object[] toOutputRowData(
 			final RowMetaInterface outputRowMeta,
 			final AbstractTransformers tf,
-			final byte[] hostRecord)
+			final byte[] hostRecord,
+			final HostTransformStatus status)
 			throws KettleException {
 		try {
+		    int expectedOutputRows = outputRowMeta.getFieldNames().length;
 			IHostToJavaTransformer h2j = tf.getHostToJava();
-			h2j.transform(hostRecord);
+			h2j.transform(hostRecord, status);
 			ICobolComplexBinding binding = ((AbstractTransformer) h2j)
 					.getCachedBinding();
 
 			List<Object> objects = new ArrayList<Object>();
 			toObjects(objects, binding, -1);
+            /* PDI does not support variable size arrays. Need to fill all columns.*/
+            for (int i = objects.size(); i < expectedOutputRows; i++) {
+                objects.add(null);
+            }
 
 			return objects.toArray(new Object[objects.size()]);
 
@@ -448,11 +463,6 @@ public class CobolToPdi {
 				} else {
 					objects.add(toObject(binding, i));
 				}
-			}
-			/* PDI does not support variable size arrays. Need to fill all columns.*/
-			for (int i = arrayBinding.getCurrentOccurs(); i < arrayBinding
-					.getMaxOccurs(); i++) {
-				objects.add(null);
 			}
 		} else {
 			objects.add(toObject(binding, -1));
@@ -604,11 +614,27 @@ public class CobolToPdi {
     
     /**
      * Convenience method to get our private lib folder.
+     * <p/>
+     * If we are registered as a plugin (during integration tests or production)
+     * then we get the location of our plugin from the registry otherwise se
+     * assume we are running off "user.dir".
+     * 
      * @return a kettle plugin folder
      */
     public static PluginFolder getPluginLibFolder() {
-        return new PluginFolder(System.getProperty("user.dir") + LIB_FOLDER,
-                false, false);
+        
+        String pluginLocation = null;
+        PluginInterface plugin = PluginRegistry.getInstance().findPluginWithId(
+                StepPluginType.class,
+                "com.legstar.pdi.zosfile");
+        if (plugin != null) {
+            pluginLocation = plugin.getPluginDirectory().getPath();
+        } else {
+            pluginLocation = System.getProperty("user.dir") + '/'
+                    + DEFAULT_PLUGIN_FOLDER;
+        }
+        pluginLocation += '/' + LIB_FOLDER;
+        return new PluginFolder(pluginLocation, false, false);
     }
     
     /**

@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin
-   id="ZOSFINPUT"
+   id="com.legstar.pdi.zosfile"
    iconfile="ZOSFIN.png"
    description="z/OS File Input"
    tooltip="Reads binary z/OS records using LegStar"
    category="Input"
-   classname="legstar.pdi.proto.steps.zosfileinput.ZosFileInputMeta">
+   classname="com.legstar.pdi.zosfile.ZosFileInputMeta">
    <libraries>
-       <library name="legstar.pdi.proto-1.0-SNAPSHOT.jar"/>
-       <library name="legstar.pdi.proto-1.0-SNAPSHOT-sources.jar"/>
-       <library name="legstar-coxbrt-1.4.0.jar"/>
-       <library name="legstar-coxbapi-1.4.0.jar"/>
+       <library name="${artifactId}-${version}.jar"/>
+       <library name="${artifactId}-${version}-sources.jar"/>
+       <library name="legstar-coxbrt-${legstar.version}.jar"/>
+       <library name="legstar-coxbapi-${legstar.version}.jar"/>
        <library name="activation-1.1.jar"/>
        <library name="jaxb-api-2.1.jar"/>
        <library name="jsr173_api-1.0.jar"/>

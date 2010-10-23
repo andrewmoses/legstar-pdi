@@ -1,0 +1,21 @@
+lib sub-folder for step plugins
+
+Hello everyone,
+
+I am writing a step plugin where users should be able to add new libraries on the plugin class path.
+
+These external libraries are created by a code generator outside PDI.
+
+One way I found to do that (using PDI 4.0.1) is for users to copy their additional libraries into my plugin sub-folder and then edit my plugin.xml to add new references to their libraries.
+
+Reading other posts on this forum, I know there might be alternative possibilities for users to copy their libraries into shared locations such as libext but I would like to avoid this.
+
+It would be great if my plugin folder could have a lib sub-folder where users can drop their additional libraries without the need to edit plugin.xml.
+
+There is code that does exactly that in BasePluginType#createUrlClassLoader but that does not apply to step plugins.
+
+What would be the best way to achieve this?
+
+Thanks for your help.
+
+Fady

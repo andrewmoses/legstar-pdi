@@ -66,7 +66,14 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 	private TextVar      wFilename;
 
 	/** Browse button to locate the z/OS file. */
-	private Button       wbbFilename; // 
+	private Button       wbbFilename;
+	
+    /** A checkbox for variable length records. */
+    private Button       wcbIsVariableLength;
+
+	/** A checkbox in case records start with an RDW. */
+	private Button       wcbHasRecordDescriptorWord;
+
 	
 	/** The z/OS file record fields that need to be extracted.*/
 	private TableView    wFields;
@@ -116,6 +123,14 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 		// Add the z/OS file name
 		addFilename(lastControl, middle, margin, lsMod);
 		lastControl = wFilename;
+		
+        // Add variable length checkbox
+        addIsVariableLength(lastControl, middle, margin, lsMod);
+        lastControl = wcbIsVariableLength;
+
+		// Add RDW checkbox
+		addHasRecordDescriptorWord(lastControl, middle, margin, lsMod);
+        lastControl = wcbHasRecordDescriptorWord;
 
 		// Add OK, cancel, and preview buttons
 		addButtons(margin);      
@@ -260,6 +275,72 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 		fdFilename.left = new FormAttachment(middle, 0);
 		fdFilename.right= new FormAttachment(wbbFilename, -margin);
 		wFilename.setLayoutData(fdFilename);
+	}
+	
+    /**
+     * Add a check box for variable length records.
+     * 
+     * @param lastControl the last control to position from
+     * @param middle percentage of the parent widget 
+     * @param margin offset from that position
+     * @param lsMod a modification listener
+     */
+    protected void addIsVariableLength(
+            final Control lastControl,
+            final int middle,
+            final int margin,
+            final ModifyListener lsMod) {
+        Label wlIsVariableLength = new Label(shell, SWT.RIGHT);
+        wlIsVariableLength.setText(BaseMessages.getString(PKG,
+                "ZosFileInputDialog.IsVariableLength.Label"));
+        props.setLook(wlIsVariableLength);
+        FormData fdlIncludeFilename = new FormData();
+        fdlIncludeFilename.top = new FormAttachment(lastControl, margin);
+        fdlIncludeFilename.left = new FormAttachment(0, 0);
+        fdlIncludeFilename.right = new FormAttachment(middle, -margin);
+        wlIsVariableLength.setLayoutData(fdlIncludeFilename);
+        wcbIsVariableLength = new Button(shell, SWT.CHECK);
+        wcbIsVariableLength.setToolTipText(BaseMessages.getString(PKG,
+                "ZosFileInputDialog.Tooltip.IsVariableLength"));
+        props.setLook(wcbIsVariableLength);
+        FormData fdIncludeFilename = new FormData();
+        fdIncludeFilename.top = new FormAttachment(lastControl, margin);
+        fdIncludeFilename.left = new FormAttachment(middle, 0);
+        fdIncludeFilename.right = new FormAttachment(100, 0);
+        wcbIsVariableLength.setLayoutData(fdIncludeFilename);
+    }
+    
+	/**
+	 * Add a check box for records starting with an RDW.
+	 * 
+     * @param lastControl the last control to position from
+     * @param middle percentage of the parent widget 
+     * @param margin offset from that position
+     * @param lsMod a modification listener
+	 */
+	protected void addHasRecordDescriptorWord(
+            final Control lastControl,
+            final int middle,
+            final int margin,
+            final ModifyListener lsMod) {
+        Label wlHasRecordDescriptorWord = new Label(shell, SWT.RIGHT);
+        wlHasRecordDescriptorWord.setText(BaseMessages.getString(PKG,
+                "ZosFileInputDialog.HasRecordDescriptorWord.Label"));
+        props.setLook(wlHasRecordDescriptorWord);
+        FormData fdlIncludeFilename = new FormData();
+        fdlIncludeFilename.top = new FormAttachment(lastControl, margin);
+        fdlIncludeFilename.left = new FormAttachment(0, 0);
+        fdlIncludeFilename.right = new FormAttachment(middle, -margin);
+        wlHasRecordDescriptorWord.setLayoutData(fdlIncludeFilename);
+        wcbHasRecordDescriptorWord = new Button(shell, SWT.CHECK);
+        wcbHasRecordDescriptorWord.setToolTipText(BaseMessages.getString(PKG,
+                "ZosFileInputDialog.Tooltip.HasRecordDescriptorWord"));
+        props.setLook(wcbHasRecordDescriptorWord);
+        FormData fdIncludeFilename = new FormData();
+        fdIncludeFilename.top = new FormAttachment(lastControl, margin);
+        fdIncludeFilename.left = new FormAttachment(middle, 0);
+        fdIncludeFilename.right = new FormAttachment(100, 0);
+        wcbHasRecordDescriptorWord.setLayoutData(fdIncludeFilename);
 	}
 	
 	/**
@@ -541,6 +622,9 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 		wJaxbQualifiedClassName.setText(Const.NVL(_inputMeta
 				.getJaxbQualifiedClassName(), ""));
 		wFilename.setText(Const.NVL(_inputMeta.getFilename(), ""));
+		wcbIsVariableLength.setSelection(_inputMeta.isVariableLength());
+		wcbHasRecordDescriptorWord.setSelection(_inputMeta.hasRecordDescriptorWord());
+		
 		setDialogFields(_inputMeta.getInputFields());
 
 		wStepname.selectAll();
@@ -577,8 +661,11 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 	 */ 
 	private void setMetaDataFromDialog() {
 		
-		_inputMeta.setJaxbQualifiedClassName(wJaxbQualifiedClassName.getText());
-		_inputMeta.setFilename(wFilename.getText());
+        _inputMeta.setJaxbQualifiedClassName(wJaxbQualifiedClassName.getText());
+        _inputMeta.setFilename(wFilename.getText());
+        _inputMeta.setIsVariableLength(wcbIsVariableLength.getSelection());
+        _inputMeta.setHasRecordDescriptorWord(wcbHasRecordDescriptorWord
+                .getSelection());
 		
     	int nrNonEmptyFields = wFields.nrNonEmpty(); 
     	_inputMeta.setInputFields(new CobolFileInputField[nrNonEmptyFields]);

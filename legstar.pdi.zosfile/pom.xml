@@ -84,7 +84,27 @@
   </dependencies>
   
   <build>
+
+    <!-- Kettle step XML is filtered -->
+    <resources>
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    
     <plugins>
+
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId> 
@@ -109,13 +129,22 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
         
-          <!-- Deploy zip file to pdi. -->
+          <!-- Deploy zip file locally for integration tests and to pdi.
+               In the case of integration tests, we remove the jars from
+               the plugin itself because they are already loaded by the
+               launcher (leaving them causes ClassCastExceptions) -->
           <execution>
             <id>integration-tests</id>
-            <phase>integration-test</phase>
+            <phase>pre-integration-test</phase>
             <configuration>
               <tasks>
                 <property environment="env"/>
+                <unzip src="${project.build.directory}/${project.artifactId}.zip"
+                  dest="${project.build.directory}/plugins/steps"
+                  overwrite="true"/>
+                <delete>
+                  <fileset dir="${project.build.directory}/plugins/steps" includes="**/*.jar"/>
+                </delete>
                 <unzip src="${project.build.directory}/${project.artifactId}.zip"
                   dest="${env.KETTLE_DIR}/plugins/steps"
                   overwrite="true"/>
