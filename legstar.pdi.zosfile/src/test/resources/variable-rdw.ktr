@@ -67,7 +67,7 @@
   <notepads>
   </notepads>
   <order>
-  <hop> <from>z&#47;OS variable file Input</from><to>Dummy (do nothing)</to><enabled>Y</enabled> </hop>  </order>
+  <hop> <from>z&#47;OS variable file Input with rdw</from><to>Dummy (do nothing)</to><enabled>Y</enabled> </hop>  </order>
   <step>
     <name>Dummy (do nothing)</name>
     <type>Dummy</type>
@@ -87,7 +87,7 @@
     </step>
 
   <step>
-    <name>z&#47;OS variable file Input</name>
+    <name>z&#47;OS variable file Input with rdw</name>
     <type>com.legstar.pdi.zosfile</type>
     <description/>
     <distribute>Y</distribute>
@@ -111,7 +111,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>PersonalData_CustomerName</name>
+        <name>CustomerName</name>
         <type>String</type>
         <length>20</length>
         <precision>-1</precision>
@@ -119,7 +119,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>PersonalData_CustomerAddress</name>
+        <name>CustomerAddress</name>
         <type>String</type>
         <length>20</length>
         <precision>-1</precision>
@@ -127,7 +127,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>PersonalData_CustomerPhone</name>
+        <name>CustomerPhone</name>
         <type>String</type>
         <length>8</length>
         <precision>-1</precision>
@@ -135,7 +135,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_TransactionNbr</name>
+        <name>TransactionNbr</name>
         <type>Integer</type>
         <length>-1</length>
         <precision>0</precision>
@@ -143,7 +143,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_0</name>
+        <name>TransactionDate_0</name>
         <type>String</type>
         <length>8</length>
         <precision>-1</precision>
@@ -151,7 +151,7 @@
         <redefined>Y</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransAmount_0</name>
+        <name>TransactionAmount_0</name>
         <type>BigNumber</type>
         <length>-1</length>
         <precision>2</precision>
@@ -159,7 +159,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransComment_0</name>
+        <name>TransactionComment_0</name>
         <type>String</type>
         <length>9</length>
         <precision>-1</precision>
@@ -167,7 +167,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_1</name>
+        <name>TransactionDate_1</name>
         <type>String</type>
         <length>8</length>
         <precision>-1</precision>
@@ -175,7 +175,7 @@
         <redefined>Y</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransAmount_1</name>
+        <name>TransactionAmount_1</name>
         <type>BigNumber</type>
         <length>-1</length>
         <precision>2</precision>
@@ -183,7 +183,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransComment_1</name>
+        <name>TransactionComment_1</name>
         <type>String</type>
         <length>9</length>
         <precision>-1</precision>
@@ -191,7 +191,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_2</name>
+        <name>TransactionDate_2</name>
         <type>String</type>
         <length>8</length>
         <precision>-1</precision>
@@ -199,7 +199,7 @@
         <redefined>Y</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransAmount_2</name>
+        <name>TransactionAmount_2</name>
         <type>BigNumber</type>
         <length>-1</length>
         <precision>2</precision>
@@ -207,7 +207,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransComment_2</name>
+        <name>TransactionComment_2</name>
         <type>String</type>
         <length>9</length>
         <precision>-1</precision>
@@ -215,7 +215,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_3</name>
+        <name>TransactionDate_3</name>
         <type>String</type>
         <length>8</length>
         <precision>-1</precision>
@@ -223,7 +223,7 @@
         <redefined>Y</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransAmount_3</name>
+        <name>TransactionAmount_3</name>
         <type>BigNumber</type>
         <length>-1</length>
         <precision>2</precision>
@@ -231,7 +231,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransComment_3</name>
+        <name>TransactionComment_3</name>
         <type>String</type>
         <length>9</length>
         <precision>-1</precision>
@@ -239,7 +239,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_4</name>
+        <name>TransactionDate_4</name>
         <type>String</type>
         <length>8</length>
         <precision>-1</precision>
@@ -247,7 +247,7 @@
         <redefined>Y</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransAmount_4</name>
+        <name>TransactionAmount_4</name>
         <type>BigNumber</type>
         <length>-1</length>
         <precision>2</precision>
@@ -255,7 +255,7 @@
         <redefined>N</redefined>
       </field>
       <field>
-        <name>Transactions_Transaction_LastTransComment_4</name>
+        <name>TransactionComment_4</name>
         <type>String</type>
         <length>9</length>
         <precision>-1</precision>

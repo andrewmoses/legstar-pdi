@@ -57,7 +57,7 @@ import com.legstar.pdi.CobolToPdi;
  * A PDI dialog to setup the z/OS File Input step.
  * TODO Add possibility of getting the file name from a previous step
  * TODO Add possibility to pass the file name to the next step (when it is received as a parameter)
- *
+ * TODO Add possibility to rename fields
  */
 public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInterface {
 

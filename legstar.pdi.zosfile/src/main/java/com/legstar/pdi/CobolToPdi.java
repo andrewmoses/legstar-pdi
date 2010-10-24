@@ -179,12 +179,12 @@ public class CobolToPdi {
 	/**
 	 * Recursively adds fields to the fields list.
 	 * <p/>
-	 * Field names are prefixed with the parent name to avoid name conflicts.
+	 * Field names may be prefixed with the parent name to avoid name conflicts.
 	 * <p/>
 	 * Arrays are split in the maximum number of items, each one being named
 	 * after the array name and suffixed with its index within the array.
 	 * <p/>
-	 * Choices (redefines) are not handled and result in alternatives being ignored.
+	 * Choices (redefines) result in alternatives being ignored.
 	 * This is because PDI does not allow the list of fields to be redefined dynamically
 	 * based on content. So we cannot use LegStar redefines handling strategies.
 	 * 
@@ -205,7 +205,7 @@ public class CobolToPdi {
 			final String suffix,
 			final boolean redefined) throws HostException {
 
-		if (binding instanceof ICobolComplexBinding) {
+	    if (binding instanceof ICobolComplexBinding) {
 			for (ICobolBinding child : ((ICobolComplexBinding) binding)
 					.getChildrenList()) {
 				String newPrefix = (prefix == null) ? ""
@@ -228,11 +228,11 @@ public class CobolToPdi {
 					toFields(fields, ((ICobolArrayComplexBinding) binding)
 							.getComplexItemBinding(), prefix, newSuffix, redefined);
 				} else {
-					fields.add(toField(binding, prefix, newSuffix, redefined));
+					fields.add(toField(fields, binding, prefix, newSuffix, redefined));
 				}
 			}
 		} else {
-			fields.add(toField(binding, prefix, suffix, redefined));
+			fields.add(toField(fields, binding, prefix, suffix, redefined));
 		}
 
 	}
@@ -251,84 +251,134 @@ public class CobolToPdi {
 	 * @return a PDI field
 	 */
 	public static CobolFileInputField toField(
+	        final List<CobolFileInputField> fields,
 			final ICobolBinding binding,
 			final String prefix,
 			final String suffix,
 			final boolean redefined) {
-		CobolFileInputField field = new CobolFileInputField();
-		field
-				.setName(((prefix == null || prefix.isEmpty()) ? ""
-						: prefix + '_')
-						+ binding.getBindingName()
-						+ ((suffix == null) ? "" : suffix));
 
-		if (binding instanceof ICobolNumericBinding
-				|| binding instanceof ICobolArrayNumericBinding) {
-			field.setPrecision(binding.getFractionDigits());
-		} else {
-			field.setPrecision(-1);
-		}
-		field.setLength(-1);
-		field.setTrimType(ValueMetaInterface.TRIM_TYPE_NONE);
+        CobolFileInputField field = new CobolFileInputField();
+        field.setName(newName(fields, binding.getBindingName(), prefix, suffix));
 
-		if (binding instanceof ICobolStringBinding) {
-			field.setType(ValueMetaInterface.TYPE_STRING);
-			field.setLength((binding.getByteLength()));
-			field.setTrimType(ValueMetaInterface.TRIM_TYPE_RIGHT);
+        if (binding instanceof ICobolNumericBinding
+                || binding instanceof ICobolArrayNumericBinding) {
+            field.setPrecision(binding.getFractionDigits());
+        } else {
+            field.setPrecision(-1);
+        }
+        field.setLength(-1);
+        field.setTrimType(ValueMetaInterface.TRIM_TYPE_NONE);
 
-		} else if (binding instanceof ICobolArrayStringBinding) {
-			field.setType(ValueMetaInterface.TYPE_STRING);
-			field.setLength(((ICobolArrayBinding) binding).getItemByteLength());
-			field.setTrimType(ValueMetaInterface.TRIM_TYPE_RIGHT);
+        if (binding instanceof ICobolStringBinding) {
+            field.setType(ValueMetaInterface.TYPE_STRING);
+            field.setLength((binding.getByteLength()));
+            field.setTrimType(ValueMetaInterface.TRIM_TYPE_RIGHT);
 
-		} else if (binding instanceof ICobolNumericBinding
-				|| binding instanceof ICobolArrayNumericBinding) {
-			if (binding.getFractionDigits() > 0) {
-				field.setType(ValueMetaInterface.TYPE_BIGNUMBER);
-			} else {
-				field.setType(ValueMetaInterface.TYPE_INTEGER);
-			}
+        } else if (binding instanceof ICobolArrayStringBinding) {
+            field.setType(ValueMetaInterface.TYPE_STRING);
+            field.setLength(((ICobolArrayBinding) binding).getItemByteLength());
+            field.setTrimType(ValueMetaInterface.TRIM_TYPE_RIGHT);
 
-		} else if (binding instanceof ICobolDoubleBinding
-				|| binding instanceof ICobolArrayDoubleBinding) {
-			field.setType(ValueMetaInterface.TYPE_NUMBER);
+        } else if (binding instanceof ICobolNumericBinding
+                || binding instanceof ICobolArrayNumericBinding) {
+            if (binding.getFractionDigits() > 0) {
+                field.setType(ValueMetaInterface.TYPE_BIGNUMBER);
+            } else {
+                field.setType(ValueMetaInterface.TYPE_INTEGER);
+            }
 
-		} else if (binding instanceof ICobolFloatBinding
-				|| binding instanceof ICobolArrayFloatBinding) {
-			field.setType(ValueMetaInterface.TYPE_NUMBER);
+        } else if (binding instanceof ICobolDoubleBinding
+                || binding instanceof ICobolArrayDoubleBinding) {
+            field.setType(ValueMetaInterface.TYPE_NUMBER);
 
-		} else if (binding instanceof ICobolDbcsBinding
-				|| binding instanceof ICobolNationalBinding) {
-			field.setType(ValueMetaInterface.TYPE_STRING);
-			field.setLength((binding.getByteLength() / 2));
-			field.setTrimType(ValueMetaInterface.TRIM_TYPE_RIGHT);
+        } else if (binding instanceof ICobolFloatBinding
+                || binding instanceof ICobolArrayFloatBinding) {
+            field.setType(ValueMetaInterface.TYPE_NUMBER);
 
-		} else if (binding instanceof ICobolArrayDbcsBinding
-				|| binding instanceof ICobolArrayNationalBinding) {
-			field.setType(ValueMetaInterface.TYPE_STRING);
-			field.setLength(((ICobolArrayBinding) binding)
-							.getItemByteLength() / 2);
-			field.setTrimType(ValueMetaInterface.TRIM_TYPE_RIGHT);
+        } else if (binding instanceof ICobolDbcsBinding
+                || binding instanceof ICobolNationalBinding) {
+            field.setType(ValueMetaInterface.TYPE_STRING);
+            field.setLength((binding.getByteLength() / 2));
+            field.setTrimType(ValueMetaInterface.TRIM_TYPE_RIGHT);
 
-		} else if (binding instanceof ICobolOctetStreamBinding) {
-			field.setType(ValueMetaInterface.TYPE_BINARY);
-			field.setLength((binding.getByteLength()));
+        } else if (binding instanceof ICobolArrayDbcsBinding
+                || binding instanceof ICobolArrayNationalBinding) {
+            field.setType(ValueMetaInterface.TYPE_STRING);
+            field.setLength(((ICobolArrayBinding) binding)
+                            .getItemByteLength() / 2);
+            field.setTrimType(ValueMetaInterface.TRIM_TYPE_RIGHT);
 
-		} else if (binding instanceof ICobolArrayOctetStreamBinding) {
-			field.setType(ValueMetaInterface.TYPE_BINARY);
-			field.setLength(((ICobolArrayBinding) binding).getItemByteLength());
+        } else if (binding instanceof ICobolOctetStreamBinding) {
+            field.setType(ValueMetaInterface.TYPE_BINARY);
+            field.setLength((binding.getByteLength()));
 
-		} else {
-			field.setType(ValueMetaInterface.TYPE_NONE);
-		}
-		field.setFormat("");
-		field.setCurrencySymbol("");
-		field.setDecimalSymbol("");
-		field.setGroupSymbol("");
-		field.setRedefined(redefined);
+        } else if (binding instanceof ICobolArrayOctetStreamBinding) {
+            field.setType(ValueMetaInterface.TYPE_BINARY);
+            field.setLength(((ICobolArrayBinding) binding).getItemByteLength());
 
-		return field;
+        } else {
+            field.setType(ValueMetaInterface.TYPE_NONE);
+        }
+        field.setFormat("");
+        field.setCurrencySymbol("");
+        field.setDecimalSymbol("");
+        field.setGroupSymbol("");
+        field.setRedefined(redefined);
+
+        return field;
 	}
+	
+	/**
+	 * Creates a new column name based on the COXB field name.
+	 * <p/>
+	 * The proposed name is as simple as possible but we need to avoid any
+	 * name conflicts (a column must have a unique name) so we check for
+	 * any conflict and use a prefix system to disambiguate names.
+	 * @param fields the list of fields already named
+	 * @param binding the COXB field
+	 * @param prefix the maximum prefix
+	 * @param suffix an optional suffix (array items)
+	 * @return a unique name for a column
+	 */
+	protected static String newName(final List<CobolFileInputField> fields,
+            final String bindingName,
+            final String prefix,
+            final String suffix) {
+
+	    // Always add suffix if any (array item number)
+	    String name = bindingName + ((suffix == null) ? "" : suffix);
+	   
+	    // nothing to disambiguate with
+	    if (prefix == null || prefix.isEmpty()) {
+	        return name;
+	    }
+	    String[] prefixes = prefix.split("_");
+	    int pos = prefixes.length - 1;
+	    
+        while (nameConlict(name, fields) && pos > -1) {
+            name  = prefixes[pos] + '_' + name;
+            pos--;
+        }
+        
+        return name;
+	    
+	}
+	
+    /**
+     * Determines if a proposed name is already used.
+     * @param name the proposed name
+     * @param fields the list of fields already named
+     * @return true if name already used
+     */
+    protected static boolean nameConlict(final String name,
+            final List < CobolFileInputField > fields) {
+        for (CobolFileInputField field : fields) {
+            if (field.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 	/**
 	 * Calculates the maximum byte array length of host data for a LegStar

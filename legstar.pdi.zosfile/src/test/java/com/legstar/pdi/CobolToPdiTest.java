@@ -1,5 +1,6 @@
 package com.legstar.pdi;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.pentaho.di.core.exception.KettleException;
@@ -31,25 +32,25 @@ public class CobolToPdiTest extends TestCase {
 				new com.legstar.test.coxb.tcobwvb.ObjectFactory(),
 				new com.legstar.test.coxb.tcobwvb.CustomerData());
 		assertEquals("CustomerId", fields.get(0).getName());
-		assertEquals("PersonalData_CustomerName", fields.get(1).getName());
-		assertEquals("PersonalData_CustomerAddress", fields.get(2).getName());
-		assertEquals("PersonalData_CustomerPhone", fields.get(3).getName());
-		assertEquals("Transactions_TransactionNbr", fields.get(4).getName());
-		assertEquals("Transactions_Transaction_LastTransDateChoice_LastTransDate_0", fields.get(5).getName());
-		assertEquals("Transactions_Transaction_LastTransAmount_0", fields.get(6).getName());
-		assertEquals("Transactions_Transaction_LastTransComment_0", fields.get(7).getName());
-        assertEquals("Transactions_Transaction_LastTransDateChoice_LastTransDate_1", fields.get(8).getName());
-        assertEquals("Transactions_Transaction_LastTransAmount_1", fields.get(9).getName());
-        assertEquals("Transactions_Transaction_LastTransComment_1", fields.get(10).getName());
-        assertEquals("Transactions_Transaction_LastTransDateChoice_LastTransDate_2", fields.get(11).getName());
-        assertEquals("Transactions_Transaction_LastTransAmount_2", fields.get(12).getName());
-        assertEquals("Transactions_Transaction_LastTransComment_2", fields.get(13).getName());
-        assertEquals("Transactions_Transaction_LastTransDateChoice_LastTransDate_3", fields.get(14).getName());
-        assertEquals("Transactions_Transaction_LastTransAmount_3", fields.get(15).getName());
-        assertEquals("Transactions_Transaction_LastTransComment_3", fields.get(16).getName());
-        assertEquals("Transactions_Transaction_LastTransDateChoice_LastTransDate_4", fields.get(17).getName());
-        assertEquals("Transactions_Transaction_LastTransAmount_4", fields.get(18).getName());
-        assertEquals("Transactions_Transaction_LastTransComment_4", fields.get(19).getName());
+		assertEquals("CustomerName", fields.get(1).getName());
+		assertEquals("CustomerAddress", fields.get(2).getName());
+		assertEquals("CustomerPhone", fields.get(3).getName());
+		assertEquals("TransactionNbr", fields.get(4).getName());
+		assertEquals("TransactionDate_0", fields.get(5).getName());
+		assertEquals("TransactionAmount_0", fields.get(6).getName());
+		assertEquals("TransactionComment_0", fields.get(7).getName());
+        assertEquals("TransactionDate_1", fields.get(8).getName());
+        assertEquals("TransactionAmount_1", fields.get(9).getName());
+        assertEquals("TransactionComment_1", fields.get(10).getName());
+        assertEquals("TransactionDate_2", fields.get(11).getName());
+        assertEquals("TransactionAmount_2", fields.get(12).getName());
+        assertEquals("TransactionComment_2", fields.get(13).getName());
+        assertEquals("TransactionDate_3", fields.get(14).getName());
+        assertEquals("TransactionAmount_3", fields.get(15).getName());
+        assertEquals("TransactionComment_3", fields.get(16).getName());
+        assertEquals("TransactionDate_4", fields.get(17).getName());
+        assertEquals("TransactionAmount_4", fields.get(18).getName());
+        assertEquals("TransactionComment_4", fields.get(19).getName());
 	}
 
 	/**
@@ -63,10 +64,10 @@ public class CobolToPdiTest extends TestCase {
 				new com.legstar.test.coxb.lsfileae.Dfhcommarea());
 		assertEquals("ComNumber", fields.get(0).getName());
 		assertEquals(ValueMetaInterface.TYPE_INTEGER, fields.get(0).getType());
-		assertEquals("ComPersonal_ComName", fields.get(1).getName());
+		assertEquals("ComName", fields.get(1).getName());
 		assertEquals(ValueMetaInterface.TYPE_STRING, fields.get(1).getType());
-		assertEquals("ComPersonal_ComAddress", fields.get(2).getName());
-		assertEquals("ComPersonal_ComPhone", fields.get(3).getName());
+		assertEquals("ComAddress", fields.get(2).getName());
+		assertEquals("ComPhone", fields.get(3).getName());
 		assertEquals("ComDate", fields.get(4).getName());
 		assertEquals("ComAmount", fields.get(5).getName());
 		assertEquals("ComComment", fields.get(6).getName());
@@ -102,22 +103,22 @@ public class CobolToPdiTest extends TestCase {
 				new com.legstar.test.coxb.lsfileac.ReplyData());
 		assertEquals("ReplyItemscount", fields.get(0).getName());
 		assertEquals(ValueMetaInterface.TYPE_INTEGER, fields.get(0).getType());
-		assertEquals("ReplyItem_ReplyNumber_0", fields.get(1).getName());
+		assertEquals("ReplyNumber_0", fields.get(1).getName());
 		assertEquals(ValueMetaInterface.TYPE_INTEGER, fields.get(1).getType());
-		assertEquals("ReplyItem_ReplyPersonal_ReplyName_0", fields.get(2).getName());
-		assertEquals("ReplyItem_ReplyPersonal_ReplyAddress_0", fields.get(3).getName());
-		assertEquals("ReplyItem_ReplyPersonal_ReplyPhone_0", fields.get(4).getName());
-		assertEquals("ReplyItem_ReplyDate_0", fields.get(5).getName());
-		assertEquals("ReplyItem_ReplyAmount_0", fields.get(6).getName());
-		assertEquals("ReplyItem_ReplyComment_0", fields.get(7).getName());
+		assertEquals("ReplyName_0", fields.get(2).getName());
+		assertEquals("ReplyAddress_0", fields.get(3).getName());
+		assertEquals("ReplyPhone_0", fields.get(4).getName());
+		assertEquals("ReplyDate_0", fields.get(5).getName());
+		assertEquals("ReplyAmount_0", fields.get(6).getName());
+		assertEquals("ReplyComment_0", fields.get(7).getName());
 
-		assertEquals("ReplyItem_ReplyNumber_1", fields.get(8).getName());
-		assertEquals("ReplyItem_ReplyPersonal_ReplyName_1", fields.get(9).getName());
-		assertEquals("ReplyItem_ReplyPersonal_ReplyAddress_1", fields.get(10).getName());
-		assertEquals("ReplyItem_ReplyPersonal_ReplyPhone_1", fields.get(11).getName());
-		assertEquals("ReplyItem_ReplyDate_1", fields.get(12).getName());
-		assertEquals("ReplyItem_ReplyAmount_1", fields.get(13).getName());
-		assertEquals("ReplyItem_ReplyComment_1", fields.get(14).getName());
+		assertEquals("ReplyNumber_1", fields.get(8).getName());
+		assertEquals("ReplyName_1", fields.get(9).getName());
+		assertEquals("ReplyAddress_1", fields.get(10).getName());
+		assertEquals("ReplyPhone_1", fields.get(11).getName());
+		assertEquals("ReplyDate_1", fields.get(12).getName());
+		assertEquals("ReplyAmount_1", fields.get(13).getName());
+		assertEquals("ReplyComment_1", fields.get(14).getName());
 	}
 
 	/**
@@ -218,7 +219,7 @@ public class CobolToPdiTest extends TestCase {
 		List<CobolFileInputField> fields = CobolToPdi.toFields(
 				new com.legstar.test.coxb.redsimpt.ObjectFactory(),
 				new com.legstar.test.coxb.redsimpt.Dfhcommarea());
-		assertEquals("CDefinition1Choice_CDefinition1", fields.get(0).getName());
+		assertEquals("CDefinition1", fields.get(0).getName());
 		assertEquals(ValueMetaInterface.TYPE_STRING, fields.get(0).getType());
 		assertEquals(18, fields.get(0).getLength());
 		assertTrue(fields.get(0).isRedefined());
@@ -274,6 +275,28 @@ public class CobolToPdiTest extends TestCase {
 		assertEquals("00100.35", (String) outputRowData[5]);
 		assertEquals("A VOIR", (String) outputRowData[6]);
 		
+	}
+	
+	
+	/**
+	 * Check if name conflicts are handled correctly.
+	 */
+	public void testNameConflicts() {
+	    List<CobolFileInputField> fields = new ArrayList <CobolFileInputField>();
+	    assertEquals("aname", CobolToPdi.newName(fields, "aname", null, null));
+        assertEquals("aname_0", CobolToPdi.newName(fields, "aname", null, "_0"));
+        assertEquals("aname_0", CobolToPdi.newName(fields, "aname", "parent", "_0"));
+        CobolFileInputField field = new CobolFileInputField();
+        field.setName("aname_0");
+        fields.add(field);
+        assertEquals("aname_0", CobolToPdi.newName(fields, "aname", null, "_0"));
+        assertEquals("parent_aname_0", CobolToPdi.newName(fields, "aname", "parent", "_0"));
+        field = new CobolFileInputField();
+        field.setName("parent_aname_0");
+        fields.add(field);
+        assertEquals("parent_aname_0", CobolToPdi.newName(fields, "aname", "parent", "_0"));
+        assertEquals("grandparent_parent_aname_0", CobolToPdi.newName(fields, "aname", "grandparent_parent", "_0"));
+	    
 	}
 	
 }
