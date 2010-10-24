@@ -1,15 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>com.legsem.legstar</groupId>
     <artifactId>legstar.pdi</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>legstar.pdi.zosfile</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <packaging>jar</packaging>
 
   <name>legstar.pdi.zosfile</name>
@@ -138,16 +137,12 @@
             <phase>pre-integration-test</phase>
             <configuration>
               <tasks>
-                <property environment="env"/>
-                <unzip src="${project.build.directory}/${project.artifactId}.zip"
-                  dest="${project.build.directory}/plugins/steps"
-                  overwrite="true"/>
+                <property environment="env" />
+                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}/plugins/steps" overwrite="true" />
                 <delete>
-                  <fileset dir="${project.build.directory}/plugins/steps" includes="**/*.jar"/>
+                  <fileset dir="${project.build.directory}/plugins/steps" includes="**/*.jar" />
                 </delete>
-                <unzip src="${project.build.directory}/${project.artifactId}.zip"
-                  dest="${env.KETTLE_DIR}/plugins/steps"
-                  overwrite="true"/>
+                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${env.KETTLE_DIR}/plugins/steps" overwrite="true" />
               </tasks>
             </configuration>
             <goals>
