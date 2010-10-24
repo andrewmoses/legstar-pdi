@@ -33,6 +33,12 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
 	/** Used to serialize/deserialize the JAXB qualified class name from XML. */
 	public static final String JAXBQUALIFIEDCLASSNAME_TAG = "jaxbqualifiedclassname";
+	
+	/** The mainframe character set.*/
+	private String _hostCharset;
+	
+    /** Used to serialize/deserialize the mainframe host character set from XML. */
+    public static final String HOSTCHARSET_TAG = "hostcharset";
 
 	/** The local copy of the z/OS file. */
 	private String _filename;
@@ -55,7 +61,25 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
     /** Fields from a z/OS file record. */
 	private CobolFileInputField[] _inputFields;
 	
-	public ZosFileInputMeta() {
+    /** Field name XML tag. */
+    public static final String FIELD_NAME_TAG = "name";
+
+    /** Field type XML tag. */
+    public static final String FIELD_TYPE_TAG = "type";
+
+    /** Field length XML tag. */
+    public static final String FIELD_LENGTH_TAG = "length";
+
+    /** Field precision XML tag. */
+    public static final String FIELD_PRECISION_TAG = "precision";
+
+    /** Field trim type XML tag. */
+    public static final String FIELD_TRIM_TYPE_TAG = "trim_type";
+
+    /** Field redefined XML tag. */
+    public static final String FIELD_REDEFINED_TAG = "redefined";
+
+    public ZosFileInputMeta() {
 		super();
 	}
 
@@ -79,6 +103,22 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 	public void setFilename(String filename) {
 		_filename = filename;
 	}
+
+    /**
+     * The mainframe character set
+     * @return the mainframe character set
+     */
+    public String getHostCharset() {
+        return _hostCharset;
+    }
+
+    /**
+     * The mainframe character set.
+     * @param hostCharset The mainframe character set
+     */
+    public void setHostCharset(String hostCharset) {
+        _hostCharset = hostCharset;
+    }
 
     /**
      * Are the z/OS file records variable length
@@ -151,6 +191,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 	 */
 	public void setDefault() {
 		_inputFields = new CobolFileInputField[0];
+		_hostCharset = CobolToPdi.getDefaultHostCharset();
 	}
 
 	/*
@@ -164,6 +205,8 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 		StringBuffer retval = new StringBuffer();
 		retval.append("    ").append(
 				XMLHandler.addTagValue(JAXBQUALIFIEDCLASSNAME_TAG, _jaxbQualifiedClassName));
+        retval.append("    ").append(
+                XMLHandler.addTagValue(HOSTCHARSET_TAG, _hostCharset));
 		retval.append("    ").append(
 				XMLHandler.addTagValue(FILENAME_TAG, _filename));
         retval.append("    ").append(
@@ -172,36 +215,30 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
                 XMLHandler.addTagValue(HASRECORDDESCRIPTORWORD_TAG, _hasRecordDescriptorWord));
 
         retval.append("    <fields>").append(Const.CR);
-		for (int i = 0; i < _inputFields.length; i++) {
-			CobolFileInputField field = _inputFields[i];
+        for (int i = 0; i < _inputFields.length; i++) {
+            CobolFileInputField field = _inputFields[i];
 
-			retval.append("      <field>").append(Const.CR);
-			retval.append("        ").append(
-					XMLHandler.addTagValue("name", field.getName()));
-			retval.append("        ").append(
-					XMLHandler.addTagValue("type", ValueMeta.getTypeDesc(field
-							.getType())));
-			retval.append("        ").append(
-					XMLHandler.addTagValue("format", field.getFormat()));
-			retval.append("        ").append(
-					XMLHandler.addTagValue("currency", field
-							.getCurrencySymbol()));
-			retval.append("        ")
-					.append(
-							XMLHandler.addTagValue("decimal", field
-									.getDecimalSymbol()));
-			retval.append("        ").append(
-					XMLHandler.addTagValue("group", field.getGroupSymbol()));
-			retval.append("        ").append(
-					XMLHandler.addTagValue("length", field.getLength()));
-			retval.append("        ").append(
-					XMLHandler.addTagValue("precision", field.getPrecision()));
-			retval.append("        ").append(
-					XMLHandler.addTagValue("trim_type", ValueMeta
-							.getTrimTypeCode(field.getTrimType())));
-			retval.append("      </field>").append(Const.CR);
-		}
-		retval.append("    </fields>").append(Const.CR);
+            retval.append("      <field>").append(Const.CR);
+            retval.append("        ").append(
+                    XMLHandler.addTagValue(FIELD_NAME_TAG, field.getName()));
+            retval.append("        ").append(
+                    XMLHandler.addTagValue(FIELD_TYPE_TAG,
+                            ValueMeta.getTypeDesc(field.getType())));
+            retval.append("        ").append(
+                    XMLHandler.addTagValue(FIELD_LENGTH_TAG,
+                            field.getLength()));
+            retval.append("        ").append(
+                    XMLHandler.addTagValue(FIELD_PRECISION_TAG,
+                            field.getPrecision()));
+            retval.append("        ").append(
+                    XMLHandler.addTagValue(FIELD_TRIM_TYPE_TAG, ValueMeta
+                            .getTrimTypeCode(field.getTrimType())));
+            retval.append("        ").append(
+                    XMLHandler.addTagValue(FIELD_REDEFINED_TAG,
+                            field.isRedefined()));
+            retval.append("      </field>").append(Const.CR);
+        }
+        retval.append("    </fields>").append(Const.CR);
 		return retval.toString();
 	}
 
@@ -223,6 +260,8 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 		try {
             _jaxbQualifiedClassName = XMLHandler
                     .getTagValue(stepnode, JAXBQUALIFIEDCLASSNAME_TAG);
+            _hostCharset = XMLHandler
+                    .getTagValue(stepnode, HOSTCHARSET_TAG);
             _filename = XMLHandler.getTagValue(stepnode, FILENAME_TAG);
             _isVariableLength = "Y".equalsIgnoreCase(XMLHandler
                     .getTagValue(stepnode, ISVARIABLELENGTH_TAG));
@@ -238,24 +277,18 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
 				Node fnode = XMLHandler.getSubNodeByNr(fields, "field", i);
 
-				_inputFields[i].setName(XMLHandler.getTagValue(fnode, "name"));
+				_inputFields[i].setName(XMLHandler.getTagValue(fnode, FIELD_NAME_TAG));
 				_inputFields[i].setType(ValueMeta.getType(XMLHandler
-						.getTagValue(fnode, "type")));
-				_inputFields[i].setFormat(XMLHandler.getTagValue(fnode,
-						"format"));
-				_inputFields[i].setCurrencySymbol(XMLHandler.getTagValue(fnode,
-						"currency"));
-				_inputFields[i].setDecimalSymbol(XMLHandler.getTagValue(fnode,
-						"decimal"));
-				_inputFields[i].setGroupSymbol(XMLHandler.getTagValue(fnode,
-						"group"));
+						.getTagValue(fnode, FIELD_TYPE_TAG)));
 				_inputFields[i].setLength(Const.toInt(XMLHandler.getTagValue(
-						fnode, "length"), -1));
+						fnode, FIELD_LENGTH_TAG), -1));
 				_inputFields[i].setPrecision(Const.toInt(XMLHandler
-						.getTagValue(fnode, "precision"), -1));
+						.getTagValue(fnode, FIELD_PRECISION_TAG), -1));
 				_inputFields[i].setTrimType(ValueMeta
 						.getTrimTypeByCode(XMLHandler.getTagValue(fnode,
-								"trim_type")));
+								FIELD_TRIM_TYPE_TAG)));
+                _inputFields[i].setRedefined("Y".equalsIgnoreCase(XMLHandler
+                        .getTagValue(fnode, FIELD_REDEFINED_TAG)));
 			}
 		} catch (Exception e) {
 			throw new KettleXMLException("Unable to load step info from XML", e);
@@ -275,39 +308,36 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 		try {
             _jaxbQualifiedClassName = rep.getStepAttributeString(id_step,
                     JAXBQUALIFIEDCLASSNAME_TAG);
+            _hostCharset = rep.getStepAttributeString(id_step,
+                    HOSTCHARSET_TAG);
             _filename = rep.getStepAttributeString(id_step, FILENAME_TAG);
             _isVariableLength = rep.getStepAttributeBoolean(id_step,
                     "ISFIXEDRECORD_TAG");
             _hasRecordDescriptorWord = rep.getStepAttributeBoolean(id_step,
                     "HASRECORDDESCRIPTORWORD_TAG");
 
-			int nFields = rep.countNrStepAttributes(id_step, "field_name");
+			int nFields = rep.countNrStepAttributes(id_step, "field_" + FIELD_NAME_TAG);
 			_inputFields = new CobolFileInputField[nFields];
 
-			for (int i = 0; i < nFields; i++) {
-				_inputFields[i] = new CobolFileInputField();
+            for (int i = 0; i < nFields; i++) {
+                _inputFields[i] = new CobolFileInputField();
 
-				_inputFields[i].setName(rep.getStepAttributeString(id_step, i,
-						"field_name"));
-				_inputFields[i].setType(ValueMeta.getType(rep
-						.getStepAttributeString(id_step, i, "field_type")));
-				_inputFields[i].setFormat(rep.getStepAttributeString(id_step,
-						i, "field_format"));
-				_inputFields[i].setCurrencySymbol(rep.getStepAttributeString(
-						id_step, i, "field_currency"));
-				_inputFields[i].setDecimalSymbol(rep.getStepAttributeString(
-						id_step, i, "field_decimal"));
-				_inputFields[i].setGroupSymbol(rep.getStepAttributeString(
-						id_step, i, "field_group"));
-				_inputFields[i].setLength((int) rep.getStepAttributeInteger(
-						id_step, i, "field_length"));
-				_inputFields[i].setPrecision((int) rep.getStepAttributeInteger(
-						id_step, i, "field_precision"));
-				_inputFields[i]
-						.setTrimType(ValueMeta.getTrimTypeByCode(rep
-								.getStepAttributeString(id_step, i,
-										"field_trim_type")));
-			}
+                _inputFields[i].setName(rep.getStepAttributeString(id_step, i,
+                        "field_" + FIELD_NAME_TAG));
+                _inputFields[i].setType(ValueMeta.getType(rep
+                        .getStepAttributeString(id_step, i, "field_"
+                                + FIELD_TYPE_TAG)));
+                _inputFields[i].setLength((int) rep.getStepAttributeInteger(
+                        id_step, i, "field_" + FIELD_LENGTH_TAG));
+                _inputFields[i].setPrecision((int) rep.getStepAttributeInteger(
+                        id_step, i, "field_" + FIELD_PRECISION_TAG));
+                _inputFields[i]
+                        .setTrimType(ValueMeta.getTrimTypeByCode(rep
+                                .getStepAttributeString(id_step, i,
+                                        "field_" + FIELD_TRIM_TYPE_TAG)));
+                _inputFields[i].setRedefined(rep.getStepAttributeBoolean(
+                        id_step, i, "field_" + FIELD_REDEFINED_TAG));
+            }
 		} catch (Exception e) {
 			throw new KettleException(BaseMessages.getString(PKG,
 					"TemplateStep.Exception.UnexpectedErrorInReadingStepInfo"),
@@ -320,6 +350,8 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 		try {
             rep.saveStepAttribute(id_transformation, id_step,
                     JAXBQUALIFIEDCLASSNAME_TAG, _jaxbQualifiedClassName);
+            rep.saveStepAttribute(id_transformation, id_step,
+                    HOSTCHARSET_TAG, _hostCharset);
             rep.saveStepAttribute(id_transformation, id_step, FILENAME_TAG,
                     _filename);
             rep.saveStepAttribute(id_transformation, id_step,
@@ -331,24 +363,18 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 				CobolFileInputField field = _inputFields[i];
 
 				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_name", field.getName());
+				        "field_" + FIELD_NAME_TAG, field.getName());
 				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_type", ValueMeta.getTypeDesc(field.getType()));
+				        "field_" + FIELD_TYPE_TAG, ValueMeta.getTypeDesc(field.getType()));
 				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_format", field.getFormat());
+				        "field_" + FIELD_LENGTH_TAG, field.getLength());
 				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_currency", field.getCurrencySymbol());
+				        "field_" + FIELD_PRECISION_TAG, field.getPrecision());
 				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_decimal", field.getDecimalSymbol());
-				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_group", field.getGroupSymbol());
-				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_length", field.getLength());
-				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_precision", field.getPrecision());
-				rep.saveStepAttribute(id_transformation, id_step, i,
-						"field_trim_type", ValueMeta.getTrimTypeCode(field
+				        "field_" + FIELD_TRIM_TYPE_TAG, ValueMeta.getTrimTypeCode(field
 								.getTrimType()));
+                rep.saveStepAttribute(id_transformation, id_step, i,
+                        "field_" + FIELD_REDEFINED_TAG, field.isRedefined());
 			}
 		} catch (Exception e) {
 			throw new KettleException(BaseMessages.getString(PKG,

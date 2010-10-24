@@ -97,6 +97,7 @@
            <schema_name/>
            </partitioning>
     <jaxbqualifiedclassname>com.legstar.test.coxb.tcobwvb.CustomerData</jaxbqualifiedclassname>
+    <hostcharset>IBM01140</hostcharset>
     <filename>D:\Legsem\Legstar\pdi\legstar-pdi\trunk\legstar.pdi.sample.tcobwvb\src\main\files\ZOS.TCOBWVB.RDW.bin</filename>
     <isvariablelength>Y</isvariablelength>
     <hasrdw>Y</hasrdw>
@@ -104,222 +105,162 @@
       <field>
         <name>CustomerId</name>
         <type>Integer</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>-1</length>
         <precision>0</precision>
         <trim_type>none</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>PersonalData_CustomerName</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>20</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>PersonalData_CustomerAddress</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>20</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>PersonalData_CustomerPhone</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>8</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_TransactionNbr</name>
         <type>Integer</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>-1</length>
         <precision>0</precision>
         <trim_type>none</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_0</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>8</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>Y</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransAmount_0</name>
         <type>BigNumber</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>-1</length>
         <precision>2</precision>
         <trim_type>none</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransComment_0</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>9</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_1</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>8</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>Y</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransAmount_1</name>
         <type>BigNumber</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>-1</length>
         <precision>2</precision>
         <trim_type>none</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransComment_1</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>9</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_2</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>8</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>Y</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransAmount_2</name>
         <type>BigNumber</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>-1</length>
         <precision>2</precision>
         <trim_type>none</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransComment_2</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>9</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_3</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>8</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>Y</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransAmount_3</name>
         <type>BigNumber</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>-1</length>
         <precision>2</precision>
         <trim_type>none</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransComment_3</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>9</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransDateChoice_LastTransDate_4</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>8</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>Y</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransAmount_4</name>
         <type>BigNumber</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>-1</length>
         <precision>2</precision>
         <trim_type>none</trim_type>
+        <redefined>N</redefined>
       </field>
       <field>
         <name>Transactions_Transaction_LastTransComment_4</name>
         <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
         <length>9</length>
         <precision>-1</precision>
         <trim_type>right</trim_type>
+        <redefined>N</redefined>
       </field>
     </fields>
      <cluster_schema/>

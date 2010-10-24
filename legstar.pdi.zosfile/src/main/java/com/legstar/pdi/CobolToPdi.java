@@ -41,6 +41,7 @@ import com.legstar.coxb.ICobolNationalBinding;
 import com.legstar.coxb.ICobolNumericBinding;
 import com.legstar.coxb.ICobolOctetStreamBinding;
 import com.legstar.coxb.ICobolStringBinding;
+import com.legstar.coxb.host.HostContext;
 import com.legstar.coxb.host.HostException;
 import com.legstar.coxb.impl.reflect.CComplexReflectBinding;
 import com.legstar.coxb.impl.reflect.ReflectBindingException;
@@ -391,6 +392,8 @@ public class CobolToPdi {
      *            a host transformer
      * @param hostRecord
      *            the host data
+     * @param hostCharset
+     *            the host character set
      * @param status
      *            additional info on the COBOL to Java transformation process
      * @return a PDI output row of data
@@ -401,18 +404,20 @@ public class CobolToPdi {
 			final RowMetaInterface outputRowMeta,
 			final AbstractTransformers tf,
 			final byte[] hostRecord,
+			final String hostCharset,
 			final HostTransformStatus status)
 			throws KettleException {
 		try {
 		    int expectedOutputRows = outputRowMeta.getFieldNames().length;
 			IHostToJavaTransformer h2j = tf.getHostToJava();
-			h2j.transform(hostRecord, status);
+			h2j.transform(hostRecord, hostCharset, status);
 			ICobolComplexBinding binding = ((AbstractTransformer) h2j)
 					.getCachedBinding();
 
 			List<Object> objects = new ArrayList<Object>();
 			toObjects(objects, binding, -1);
-            /* PDI does not support variable size arrays. Need to fill all columns.*/
+
+			/* PDI does not support variable size arrays. Need to fill all columns.*/
             for (int i = objects.size(); i < expectedOutputRows; i++) {
                 objects.add(null);
             }
@@ -669,6 +674,14 @@ public class CobolToPdi {
         } catch (IOException e) {
             throw new KettleFileException(e);
         }
+    }
+    
+    /**
+     * The default mainframe character set.
+     * @return the default mainframe character set
+     */
+    public static String getDefaultHostCharset() {
+        return HostContext.getDefaultHostCharsetName();
     }
 
 }

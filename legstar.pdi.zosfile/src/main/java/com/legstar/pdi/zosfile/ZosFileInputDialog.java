@@ -1,9 +1,14 @@
 package com.legstar.pdi.zosfile;
 
+import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
 
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -14,6 +19,7 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -28,12 +34,18 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.i18n.BaseMessages;
+import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
+import org.pentaho.di.trans.TransPreviewFactory;
+import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
+import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
+import org.pentaho.di.ui.core.dialog.PreviewRowsDialog;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
+import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
@@ -45,7 +57,6 @@ import com.legstar.pdi.CobolToPdi;
  * A PDI dialog to setup the z/OS File Input step.
  * TODO Add possibility of getting the file name from a previous step
  * TODO Add possibility to pass the file name to the next step (when it is received as a parameter)
- * TODO Add a preview button
  *
  */
 public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInterface {
@@ -61,6 +72,9 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 	
 	/** Browse button to locate the JAXB qualified root class name. */
 	private Button       wbbJaxbQualifiedClassName; // 
+	
+    /** The host character set. */
+	private Combo        wHostCharset;
 
 	/** The z/OS file name. */
 	private TextVar      wFilename;
@@ -120,6 +134,10 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 		addJaxbQualifiedClassName(lastControl, middle, margin, lsMod);
 		lastControl = wJaxbQualifiedClassName;
 		
+        // Add the host character set combo box
+        addHostCharset(lastControl, middle, margin, lsMod);
+        lastControl = wHostCharset;
+        
 		// Add the z/OS file name
 		addFilename(lastControl, middle, margin, lsMod);
 		lastControl = wFilename;
@@ -200,37 +218,87 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 			final int margin,
 			final ModifyListener lsMod) {
 		
-		//
-		// The JAXB qualified class browse button
-		//
-        wbbJaxbQualifiedClassName=new Button(shell, SWT.PUSH| SWT.CENTER);
+        //
+        // The JAXB qualified class browse button
+        //
+        wbbJaxbQualifiedClassName = new Button(shell, SWT.PUSH | SWT.CENTER);
         props.setLook(wbbJaxbQualifiedClassName);
-        wbbJaxbQualifiedClassName.setText(BaseMessages.getString(PKG, "System.Button.Browse"));
-        wbbJaxbQualifiedClassName.setToolTipText(BaseMessages.getString(PKG, "ZosFileInputDialog.Tooltip.BrowseForJAXBClass"));
+        wbbJaxbQualifiedClassName.setText(BaseMessages.getString(PKG,
+                "System.Button.Browse"));
+        wbbJaxbQualifiedClassName.setToolTipText(BaseMessages.getString(PKG,
+                "ZosFileInputDialog.Tooltip.BrowseForJAXBClass"));
         FormData fdbJaxbQualifiedClassName = new FormData();
-        fdbJaxbQualifiedClassName.top  = new FormAttachment(lastControl, margin);
-        fdbJaxbQualifiedClassName.right= new FormAttachment(100, 0);
+        fdbJaxbQualifiedClassName.top = new FormAttachment(lastControl, margin);
+        fdbJaxbQualifiedClassName.right = new FormAttachment(100, 0);
         wbbJaxbQualifiedClassName.setLayoutData(fdbJaxbQualifiedClassName);
 
         // The field itself...
         //
-		Label wlJaxbQualifiedClassName = new Label(shell, SWT.RIGHT);
-		wlJaxbQualifiedClassName.setText(BaseMessages.getString(PKG, "ZosFileInputDialog.JaxbQualifiedClassName.Label")); //$NON-NLS-1$
- 		props.setLook(wlJaxbQualifiedClassName);
-		FormData fdlJaxbQualifiedClassName = new FormData();
-		fdlJaxbQualifiedClassName.top  = new FormAttachment(lastControl, margin);
-		fdlJaxbQualifiedClassName.left = new FormAttachment(0, 0);
-		fdlJaxbQualifiedClassName.right= new FormAttachment(middle, -margin);
-		wlJaxbQualifiedClassName.setLayoutData(fdlJaxbQualifiedClassName);
-		wJaxbQualifiedClassName=new TextVar(transMeta, shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
- 		props.setLook(wJaxbQualifiedClassName);
-		wJaxbQualifiedClassName.addModifyListener(lsMod);
-		FormData fdJaxbQualifiedClassName = new FormData();
-		fdJaxbQualifiedClassName.top  = new FormAttachment(lastControl, margin);
-		fdJaxbQualifiedClassName.left = new FormAttachment(middle, 0);
-		fdJaxbQualifiedClassName.right= new FormAttachment(wbbJaxbQualifiedClassName, -margin);
-		wJaxbQualifiedClassName.setLayoutData(fdJaxbQualifiedClassName);
+        Label wlJaxbQualifiedClassName = new Label(shell, SWT.RIGHT);
+        wlJaxbQualifiedClassName.setText(BaseMessages.getString(PKG,
+                "ZosFileInputDialog.JaxbQualifiedClassName.Label")); //$NON-NLS-1$
+        props.setLook(wlJaxbQualifiedClassName);
+        FormData fdlJaxbQualifiedClassName = new FormData();
+        fdlJaxbQualifiedClassName.top = new FormAttachment(lastControl, margin);
+        fdlJaxbQualifiedClassName.left = new FormAttachment(0, 0);
+        fdlJaxbQualifiedClassName.right = new FormAttachment(middle, -margin);
+        wlJaxbQualifiedClassName.setLayoutData(fdlJaxbQualifiedClassName);
+        wJaxbQualifiedClassName = new TextVar(transMeta, shell, SWT.SINGLE
+                | SWT.LEFT | SWT.BORDER);
+        props.setLook(wJaxbQualifiedClassName);
+        wJaxbQualifiedClassName.addModifyListener(lsMod);
+        FormData fdJaxbQualifiedClassName = new FormData();
+        fdJaxbQualifiedClassName.top = new FormAttachment(lastControl, margin);
+        fdJaxbQualifiedClassName.left = new FormAttachment(middle, 0);
+        fdJaxbQualifiedClassName.right = new FormAttachment(
+                wbbJaxbQualifiedClassName, -margin);
+        wJaxbQualifiedClassName.setLayoutData(fdJaxbQualifiedClassName);
 	}
+	
+    /**
+     * Add the z/OS character set.
+     * @param lastControl the last control to position from
+     * @param middle percentage of the parent widget 
+     * @param margin offset from that position
+     * @param lsMod a modification listener
+     */
+    protected void addHostCharset(
+            final Control lastControl,
+            final int middle,
+            final int margin,
+            final ModifyListener lsMod) {
+        Label wlHostCharset = new Label(shell, SWT.RIGHT);
+        wlHostCharset.setText(BaseMessages.getString(PKG,
+                "ZosFileInputDialog.HostCharset.Label"));
+        props.setLook(wlHostCharset);
+        FormData fdlHostCharset = new FormData();
+        fdlHostCharset.left = new FormAttachment(0, 0);
+        fdlHostCharset.top = new FormAttachment(lastControl, margin);
+        fdlHostCharset.right = new FormAttachment(middle, -margin);
+        wlHostCharset.setLayoutData(fdlHostCharset);
+        wHostCharset = new Combo(shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        wHostCharset.setToolTipText(BaseMessages.getString(PKG,
+                "ZosFileInputDialog.HostCharset.Tooltip"));
+        wHostCharset.setItems(availableCharsets());
+        props.setLook(wHostCharset);
+        FormData fdHostCharset = new FormData();
+        fdHostCharset.left = new FormAttachment(middle, 0);
+        fdHostCharset.top = new FormAttachment(lastControl, margin);
+        fdHostCharset.right = new FormAttachment(100, 0);
+        wHostCharset.setLayoutData(fdHostCharset);
+        wHostCharset.addModifyListener(lsMod);
+
+    }
+    
+    /**
+     * Retrieve all available character sets on this VM.
+     * @return an array of available character sets
+     */
+    protected String[] availableCharsets() {
+        SortedMap < String, Charset > charsets = Charset.availableCharsets();
+        Set < String > names = charsets.keySet();
+        return names.toArray(new String[names.size()]);
+    }
 	
 	/**
 	 * Add the z/OS file name widget and associated browse button.
@@ -438,6 +506,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
 		wStepname.addSelectionListener(lsDef);
 		addJaxbQualifiedClassNameListeners();
+        addHostCharsetListeners();
 		addFilenameListeners();
 
 		// Detect X or ALT-F4 or something that kills this window...
@@ -542,6 +611,28 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
 	}
 	
+    /**
+     * Add listeners to the host charset combo box.
+     * Make sure the text entered is in the available charsets list
+     */
+    protected void addHostCharsetListeners() {
+
+        wHostCharset.addFocusListener(new FocusListener() {
+            public void focusGained(FocusEvent arg0) {
+                return;
+            }
+
+            public void focusLost(FocusEvent arg0) {
+                for (String item : wHostCharset.getItems()) {
+                    if (item.equals(wHostCharset.getText())) {
+                        return;
+                    }
+                }
+                invalidHostCharsetDialog(wHostCharset.getText());
+            }
+        });
+
+    }
 	/**
 	 * Display the list of available JAXB/COBOL classes and allow
 	 * user to select one.
@@ -621,6 +712,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 		wStepname.setText(stepname);
 		wJaxbQualifiedClassName.setText(Const.NVL(_inputMeta
 				.getJaxbQualifiedClassName(), ""));
+		setHostCharsetDialogFromMetaData();
 		wFilename.setText(Const.NVL(_inputMeta.getFilename(), ""));
 		wcbIsVariableLength.setSelection(_inputMeta.isVariableLength());
 		wcbHasRecordDescriptorWord.setSelection(_inputMeta.hasRecordDescriptorWord());
@@ -629,6 +721,37 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
 		wStepname.selectAll();
 	}
+	
+	/**
+	 * The host character set might not exist in this VM in which case
+	 * we need to warn the user that he needs to get charsets.jar.
+	 */
+	public void setHostCharsetDialogFromMetaData() {
+	    for (String item : wHostCharset.getItems()) {
+	        if (item.equals(_inputMeta.getHostCharset())) {
+	            wHostCharset.setText(item);
+	            return;
+	        }
+	    }
+	    invalidHostCharsetDialog(_inputMeta.getHostCharset());
+	}
+	
+    /**
+     * Tell the user the host charset is not good. Probably due to a missing
+     * charsets.jar.
+     * 
+     * @param hostCharset the erroneous charset
+     */
+    protected void invalidHostCharsetDialog(final String hostCharset) {
+        new ErrorDialog(
+                wbbJaxbQualifiedClassName.getShell(),
+                BaseMessages.getString(PKG,
+                        "ZosFileInputDialog.InvalidHostCharset.DialogTitle"),
+                BaseMessages.getString(PKG,
+                        "ZosFileInputDialog.InvalidHostCharset.DialogMessage", hostCharset),
+                null);
+
+    }
 	
 	/**
 	 * Copy the fields info from meta data to the dialog fields.
@@ -658,54 +781,63 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
 	/**
 	 * Copy information from the dialog fields to the meta-data (model).
+	 * @param meta a set of meta data
 	 */ 
-	private void setMetaDataFromDialog() {
+	private void setMetaDataFromDialog(final ZosFileInputMeta meta) {
 		
-        _inputMeta.setJaxbQualifiedClassName(wJaxbQualifiedClassName.getText());
-        _inputMeta.setFilename(wFilename.getText());
-        _inputMeta.setIsVariableLength(wcbIsVariableLength.getSelection());
-        _inputMeta.setHasRecordDescriptorWord(wcbHasRecordDescriptorWord
+        meta.setJaxbQualifiedClassName(wJaxbQualifiedClassName.getText());
+        meta.setHostCharset(wHostCharset.getText());
+        meta.setFilename(wFilename.getText());
+        meta.setIsVariableLength(wcbIsVariableLength.getSelection());
+        meta.setHasRecordDescriptorWord(wcbHasRecordDescriptorWord
                 .getSelection());
 		
     	int nrNonEmptyFields = wFields.nrNonEmpty(); 
-    	_inputMeta.setInputFields(new CobolFileInputField[nrNonEmptyFields]);
+    	meta.setInputFields(new CobolFileInputField[nrNonEmptyFields]);
 
 		for (int i=0;i<nrNonEmptyFields;i++) {
 			TableItem item = wFields.getNonEmpty(i);
-			_inputMeta.getInputFields()[i] = new CobolFileInputField();
+			meta.getInputFields()[i] = new CobolFileInputField();
 			
 			int colnr=1;
-			_inputMeta.getInputFields()[i].setName( item.getText(colnr++) );
-			_inputMeta.getInputFields()[i].setType( ValueMeta.getType( item.getText(colnr++) ) );
-			_inputMeta.getInputFields()[i].setLength( Const.toInt(item.getText(colnr++), -1) );
-			_inputMeta.getInputFields()[i].setPrecision( Const.toInt(item.getText(colnr++), -1) );
-			_inputMeta.getInputFields()[i].setTrimType(ValueMeta.getTrimTypeByDesc( item.getText(colnr++) ));
-			_inputMeta.getInputFields()[i].setRedefined(item.getText(colnr++).equals("*"));
+			meta.getInputFields()[i].setName( item.getText(colnr++) );
+			meta.getInputFields()[i].setType( ValueMeta.getType( item.getText(colnr++) ) );
+			meta.getInputFields()[i].setLength( Const.toInt(item.getText(colnr++), -1) );
+			meta.getInputFields()[i].setPrecision( Const.toInt(item.getText(colnr++), -1) );
+			meta.getInputFields()[i].setTrimType(ValueMeta.getTrimTypeByDesc( item.getText(colnr++) ));
+			meta.getInputFields()[i].setRedefined(item.getText(colnr++).equals("*"));
 		}
 		wFields.removeEmptyRows();
 		wFields.setRowNums();
 		wFields.optWidth(true);
 		
-		_inputMeta.setChanged();
+		meta.setChanged();
 	}
 
+	/**
+	 * User abandons.
+	 */
 	private void cancel() {
 		stepname = null;
 		_inputMeta.setChanged(changed);
 		dispose();
 	}
 	
-	// let the plugin know about the entered data
+	/**
+	 * If user didn't bother to name the step, don't save the meta. 
+	 */
 	private void ok() {
 		if (Const.isEmpty(wStepname.getText())) return;
 
-		setMetaDataFromDialog();
+		setMetaDataFromDialog(_inputMeta);
 		stepname = wStepname.getText();
 		dispose();
 	}
 	
 	/**
-	 * Retrieve fields from the JAXB/COBOL class.
+	 * Retrieve fields from the COBOL-annotated JAXB class.
+	 * Since these classes are in a location unknown to PDI, we set
+	 * a class loader that will contain them.
 	 */
 	protected void getCobolFields() {
 		try {
@@ -726,7 +858,53 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
 	}
 
+	/**
+	 * Service the preview button.
+	 */
 	protected void preview() {
+        ZosFileInputMeta oneMeta = new ZosFileInputMeta();
+        setMetaDataFromDialog(oneMeta);
+
+        TransMeta previewMeta = TransPreviewFactory
+                .generatePreviewTransformation(transMeta, oneMeta,
+                        wStepname.getText());
+
+        EnterNumberDialog numberDialog = new EnterNumberDialog(shell,
+                props.getDefaultPreviewSize(), BaseMessages.getString(PKG,
+                        "ZosFileInputDialog.PreviewSize.DialogTitle"),
+                BaseMessages.getString(PKG,
+                        "ZosFileInputDialog.PreviewSize.DialogMessage"));
+        int previewSize = numberDialog.open();
+        if (previewSize > 0) {
+            TransPreviewProgressDialog progressDialog = new TransPreviewProgressDialog(
+                    shell, previewMeta, new String[] { wStepname.getText() },
+                    new int[] { previewSize });
+            progressDialog.open();
+
+            Trans trans = progressDialog.getTrans();
+            String loggingText = progressDialog.getLoggingText();
+
+            if (!progressDialog.isCancelled()) {
+                if (trans.getResult() != null
+                        && trans.getResult().getNrErrors() > 0) {
+                    EnterTextDialog etd = new EnterTextDialog(shell,
+                            BaseMessages.getString(PKG,
+                                    "System.Dialog.PreviewError.Title"),
+                            BaseMessages.getString(PKG,
+                                    "System.Dialog.PreviewError.Message"),
+                            loggingText, true);
+                    etd.setReadOnly();
+                    etd.open();
+                }
+            }
+
+            PreviewRowsDialog prd = new PreviewRowsDialog(shell, transMeta,
+                    SWT.NONE, wStepname.getText(),
+                    progressDialog.getPreviewRowsMeta(wStepname.getText()),
+                    progressDialog.getPreviewRows(wStepname.getText()),
+                    loggingText);
+            prd.open();
+        }
 		
 	}
 }

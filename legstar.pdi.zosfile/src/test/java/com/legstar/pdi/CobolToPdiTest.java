@@ -261,6 +261,7 @@ public class CobolToPdiTest extends TestCase {
 				outputRowMeta,
 				new com.legstar.test.coxb.lsfileae.bind.DfhcommareaTransformers(),
 				HostData.toByteArray(LsfileaeCases.getHostBytesHex()),
+				CobolToPdi.getDefaultHostCharset(),
 				status);
 
         assertEquals(79, status.getHostBytesProcessed());

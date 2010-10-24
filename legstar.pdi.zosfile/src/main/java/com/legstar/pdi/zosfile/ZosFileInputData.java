@@ -21,6 +21,8 @@ public class ZosFileInputData extends BaseStepData implements StepDataInterface 
 	
     public String jaxbQualifiedClassname;
 	
+    public String hostCharset;
+    
 	public ZosFileInputStream fis;
 	
 	public HostTransformStatus status;

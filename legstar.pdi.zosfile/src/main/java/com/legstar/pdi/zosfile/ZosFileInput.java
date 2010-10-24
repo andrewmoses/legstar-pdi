@@ -23,6 +23,7 @@ import com.legstar.pdi.ZosFileInputStreamFactory;
  * We read an input file and transform to java in order to populate output row fields.
  * TODO add multiple input files support
  * TODO add parallel processing
+ * TODO add support for z/OS files with ASA codes (RECFM=FBA or VBA)
  */
 public class ZosFileInput extends BaseStep implements StepInterface {
 
@@ -99,6 +100,7 @@ public class ZosFileInput extends BaseStep implements StepInterface {
                 data.fis = ZosFileInputStreamFactory.create(meta, new File(
                         data.filename));
                 data.hostRecord = new byte[CobolToPdi.hostByteLength(data.tf)];
+                data.hostCharset = meta.getHostCharset();
                 data.status = new HostTransformStatus();
             } catch (FileNotFoundException e) {
                 throw new KettleException(e);
@@ -116,7 +118,10 @@ public class ZosFileInput extends BaseStep implements StepInterface {
 
             if (count > 0) {
                 Object[] outputRowData = CobolToPdi.toOutputRowData(
-                        data.outputRowMeta, data.tf, data.hostRecord,
+                        data.outputRowMeta,
+                        data.tf,
+                        data.hostRecord,
+                        data.hostCharset,
                         data.status);
                 putRow(data.outputRowMeta, outputRowData);
                 if (checkFeedback(getLinesRead())) {
