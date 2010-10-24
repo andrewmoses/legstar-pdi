@@ -96,10 +96,10 @@
     <complexType name="Transaction">
         <sequence>
             <choice>
-                <element name="lastTransDate">
+                <element name="transactionDate">
                     <annotation>
                         <appinfo>
-                            <cb:cobolElement cobolName="LAST-TRANS-DATE" isRedefined="true" levelNumber="15" picture="X(8)" srceLine="11" type="ALPHANUMERIC_ITEM" unmarshalChoiceStrategyClassName=""/>
+                            <cb:cobolElement cobolName="TRANSACTION-DATE" isRedefined="true" levelNumber="15" picture="X(8)" srceLine="11" type="ALPHANUMERIC_ITEM" unmarshalChoiceStrategyClassName=""/>
                         </appinfo>
                     </annotation>
                     <simpleType>
@@ -111,15 +111,15 @@
                 <element name="filler12" type="tns:Filler12">
                     <annotation>
                         <appinfo>
-                            <cb:cobolElement cobolName="FILLER" levelNumber="15" redefines="LAST-TRANS-DATE" srceLine="12" type="GROUP_ITEM"/>
+                            <cb:cobolElement cobolName="FILLER" levelNumber="15" redefines="TRANSACTION-DATE" srceLine="12" type="GROUP_ITEM"/>
                         </appinfo>
                     </annotation>
                 </element>
             </choice>
-            <element name="lastTransAmount">
+            <element name="transactionAmount">
                 <annotation>
                     <appinfo>
-                        <cb:cobolElement cobolName="LAST-TRANS-AMOUNT" fractionDigits="2" levelNumber="15" picture="S9(13)V99" signed="true" srceLine="18" totalDigits="15" type="PACKED_DECIMAL_ITEM" usage="PACKED-DECIMAL"/>
+                        <cb:cobolElement cobolName="TRANSACTION-AMOUNT" fractionDigits="2" levelNumber="15" picture="S9(13)V99" signed="true" srceLine="18" totalDigits="15" type="PACKED_DECIMAL_ITEM" usage="PACKED-DECIMAL"/>
                     </appinfo>
                 </annotation>
                 <simpleType>
@@ -129,10 +129,10 @@
                     </restriction>
                 </simpleType>
             </element>
-            <element name="lastTransComment">
+            <element name="transactionComment">
                 <annotation>
                     <appinfo>
-                        <cb:cobolElement cobolName="LAST-TRANS-COMMENT" levelNumber="15" picture="X(9)" srceLine="19" type="ALPHANUMERIC_ITEM"/>
+                        <cb:cobolElement cobolName="TRANSACTION-COMMENT" levelNumber="15" picture="X(9)" srceLine="19" type="ALPHANUMERIC_ITEM"/>
                     </appinfo>
                 </annotation>
                 <simpleType>
@@ -145,10 +145,10 @@
     </complexType>
     <complexType name="Filler12">
         <sequence>
-            <element name="lastTransDay">
+            <element name="transactionDay">
                 <annotation>
                     <appinfo>
-                        <cb:cobolElement cobolName="LAST-TRANS-DAY" levelNumber="20" picture="X(2)" srceLine="13" type="ALPHANUMERIC_ITEM"/>
+                        <cb:cobolElement cobolName="TRANSACTION-DAY" levelNumber="20" picture="X(2)" srceLine="13" type="ALPHANUMERIC_ITEM"/>
                     </appinfo>
                 </annotation>
                 <simpleType>
@@ -169,10 +169,10 @@
                     </restriction>
                 </simpleType>
             </element>
-            <element name="lastTransMonth">
+            <element name="transactionMonth">
                 <annotation>
                     <appinfo>
-                        <cb:cobolElement cobolName="LAST-TRANS-MONTH" levelNumber="20" picture="X(2)" srceLine="15" type="ALPHANUMERIC_ITEM"/>
+                        <cb:cobolElement cobolName="TRANSACTION-MONTH" levelNumber="20" picture="X(2)" srceLine="15" type="ALPHANUMERIC_ITEM"/>
                     </appinfo>
                 </annotation>
                 <simpleType>
@@ -193,10 +193,10 @@
                     </restriction>
                 </simpleType>
             </element>
-            <element name="lastTransYear">
+            <element name="transactionYear">
                 <annotation>
                     <appinfo>
-                        <cb:cobolElement cobolName="LAST-TRANS-YEAR" levelNumber="20" picture="X(2)" srceLine="17" type="ALPHANUMERIC_ITEM"/>
+                        <cb:cobolElement cobolName="TRANSACTION-YEAR" levelNumber="20" picture="X(2)" srceLine="17" type="ALPHANUMERIC_ITEM"/>
                     </appinfo>
                 </annotation>
                 <simpleType>

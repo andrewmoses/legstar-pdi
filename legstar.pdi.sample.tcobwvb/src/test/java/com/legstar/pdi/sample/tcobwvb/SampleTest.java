@@ -224,11 +224,11 @@ public class SampleTest extends TestCase {
 		for (Transaction transaction : javaRecord.getTransactions()
 				.getTransaction()) {
 			fw.write(CS);
-			fw.write(transaction.getLastTransDate());
+			fw.write(transaction.getTransactionDate());
 			fw.write(CS);
-			fw.write(transaction.getLastTransAmount().toString());
+			fw.write(transaction.getTransactionAmount().toString());
 			fw.write(CS);
-			fw.write(transaction.getLastTransComment());
+			fw.write(transaction.getTransactionComment());
 		}
 		fw.write(LS);
 
