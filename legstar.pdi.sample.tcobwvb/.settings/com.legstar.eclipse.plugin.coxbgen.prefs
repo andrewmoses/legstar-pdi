@@ -1,0 +1,14 @@
+#Sun Oct 24 09:40:37 CEST 2010
+coxbBinDir=D\:\\Legsem\\Legstar\\pdi\\legstar-pdi\\trunk\\legstar.pdi.sample.tcobwvb\\target\\test-classes
+coxbPackageName=com.legstar.test.coxb.tcobwvb.bind
+coxbSrcDir=D\:\\Legsem\\Legstar\\pdi\\legstar-pdi\\trunk\\legstar.pdi.sample.tcobwvb\\src\\test\\java
+eclipse.preferences.version=1
+generateIsSetMethod=true
+isJsonTransformers=false
+isXmlTransformers=false
+jaxbBinDir=D\:\\Legsem\\Legstar\\pdi\\legstar-pdi\\trunk\\legstar.pdi.sample.tcobwvb\\target\\test-classes
+jaxbPackageName=com.legstar.test.coxb.tcobwvb
+jaxbRootClassNames_0=CustomerData
+jaxbSrcDir=D\:\\Legsem\\Legstar\\pdi\\legstar-pdi\\trunk\\legstar.pdi.sample.tcobwvb\\src\\test\\java
+serializableID=1
+xsdFile=D\:\\Legsem\\Legstar\\pdi\\legstar-pdi\\trunk\\legstar.pdi.sample.tcobwvb\\tcobwvb.xsd
