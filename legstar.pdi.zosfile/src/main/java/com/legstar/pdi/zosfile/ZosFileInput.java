@@ -23,23 +23,39 @@ import com.legstar.pdi.ZosFileInputStreamFactory;
  * We read an input file and transform to java in order to populate output row fields.
  * TODO add multiple input files support
  * TODO add parallel processing
- * TODO add support for z/OS files with ASA codes (RECFM=FBA or VBA)
  */
 public class ZosFileInput extends BaseStep implements StepInterface {
 
-	private static Class<?> PKG = ZosFileInput.class; // for i18n purposes, needed by Translator2!!   $NON-NLS-1$
+    /** For i18n purposes. */
+	private static Class<?> PKG = ZosFileInput.class;
+	
+	/** Step per-thread data. */
 	private ZosFileInputData data;
+
+	/** Step meta-data. */
 	private ZosFileInputMeta meta;
 	
-    public ZosFileInput(StepMeta s, StepDataInterface stepDataInterface, int c,
-            TransMeta t, Trans dis) {
-        super(s, stepDataInterface, c, t, dis);
+    /**
+     * Creates an instance of the runtime processor.
+     * 
+     * @param stepMeta The StepMeta object to run.
+     * @param stepDataInterface the data object to store temporary data,
+     *            database connections, caches, result sets,
+     *            hashtables etc.
+     * @param copyNr The copynumber for this step.
+     * @param transMeta The TransInfo of which the step stepMeta is part of.
+     * @param trans The (running) transformation to obtain information shared
+     *            among the steps.
+     */
+    public ZosFileInput(StepMeta stepMeta, StepDataInterface stepDataInterface,
+            int copyNr,
+            TransMeta transMeta, Trans trans) {
+        super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
     }
 
 	/**
 	 * Step is initialized.
-	 * Set the classpath so that JAXB/COXB classes are located.
-	 * Instantiate the transformers.
+	 * Sanity checks the parameters.
 	 * @param smi Step meta 
 	 * @param sdi Step data
 	 * @return false if anything goes wrong
@@ -47,25 +63,6 @@ public class ZosFileInput extends BaseStep implements StepInterface {
 	public boolean init(StepMetaInterface smi, StepDataInterface sdi) {
         meta = (ZosFileInputMeta) smi;
         data = (ZosFileInputData) sdi;
-
-        try {
-            CobolToPdi.setLibClassLoader(getClass());
-
-            data.jaxbQualifiedClassname = environmentSubstitute(meta
-                    .getJaxbQualifiedClassName());
-            if (Const.isEmpty(data.jaxbQualifiedClassname)) {
-                logError(BaseMessages.getString(PKG,
-                        "ZosFileInput.MissingJaxbClassName.Message"));
-                return false;
-            }
-            data.tf = CobolToPdi
-                    .newTransformers(data.jaxbQualifiedClassname);
-        } catch (KettleException e) {
-            logError(BaseMessages.getString(PKG,
-                    "ZosFileInput.TransformersNotFound.Message",
-                    data.jaxbQualifiedClassname), e);
-            return false;
-        }
 
         data.filename = environmentSubstitute(meta.getFilename());
         if (Const.isEmpty(data.filename)) {
@@ -76,40 +73,70 @@ public class ZosFileInput extends BaseStep implements StepInterface {
         logBasic(BaseMessages.getString(PKG,
                 "ZosFileInput.ReadingFromFile.Message", data.filename));
 
+        data.compositeJaxbClassName = environmentSubstitute(meta
+                .getCompositeJaxbClassName());
+        if (Const.isEmpty(data.compositeJaxbClassName)) {
+            logError(BaseMessages.getString(PKG,
+                    "ZosFileInput.MissingJaxbClassName.Message"));
+            return false;
+        }
+
+        logBasic(BaseMessages.getString(PKG,
+                "ZosFileInput.UsingJAXBClass.Message", data.compositeJaxbClassName));
+
         return super.init(smi, sdi);
 	}
 
-	/**
-	 * Process a single row (this is repeated for all rows on input).
-	 * The file is lazily opened on the first row. 
-	 * @param smi Step meta 
-	 * @param sdi Step data
-	 * @throws KettleException if something goes wrong
-	 */
-	public boolean processRow(StepMetaInterface smi, StepDataInterface sdi) throws KettleException {
-		meta = (ZosFileInputMeta) smi;
-		data = (ZosFileInputData) sdi;
+    /**
+     * Process a single row (this is repeated for all rows on input).
+     * On the first row, we do the following:
+     * <ul>
+     * <li>Setup a class loader that contains the Transformer jar file</li>
+     * <li>Use this class loader to create a new instance of the transformer</li>
+     * <li>The transformer will be reused for all subsequent rows</li>
+     * <li>Open the zos file</li>
+     * </ul>
+     * Here we also keep track of how many bytes from the file record were
+     * actually consumed by the transformers. This allows the leftover to
+     * be processed on the next call to this method.
+     * 
+     * @param smi Step meta
+     * @param sdi Step data
+     * @throws KettleException if something goes wrong
+     */
+    public boolean processRow(StepMetaInterface smi, StepDataInterface sdi)
+            throws KettleException {
+        meta = (ZosFileInputMeta) smi;
+        data = (ZosFileInputData) sdi;
 
-		if (first) {
-			first = false;
+        if (first) {
+            first = false;
 
-			data.outputRowMeta = new RowMeta();
-			meta.getFields(data.outputRowMeta, getStepname(), null, null, this);
-			
+            data.outputRowMeta = new RowMeta();
+            meta.getFields(data.outputRowMeta, getStepname(), null, null, this);
+
+            ClassLoader tccl = Thread.currentThread().getContextClassLoader();
             try {
+                CobolToPdi.setTransformerClassLoader(getClass(),
+                        CobolToPdi.getJarFileName(data.compositeJaxbClassName));
+                data.tf = CobolToPdi.newTransformers(
+                        CobolToPdi
+                                .getJaxbClassName(data.compositeJaxbClassName));
                 data.fis = ZosFileInputStreamFactory.create(meta, new File(
                         data.filename));
-                data.hostRecord = new byte[CobolToPdi.hostByteLength(data.tf)];
+                data.hostRecord = CobolToPdi.newHostRecord(data.tf);
                 data.hostCharset = meta.getHostCharset();
                 data.status = new HostTransformStatus();
             } catch (FileNotFoundException e) {
                 throw new KettleException(e);
+            } finally {
+                Thread.currentThread().setContextClassLoader(tccl);
             }
 
-			logBasic(BaseMessages.getString(PKG,
-					"ZosFileInput.FileOpened.Message", data.filename));
+            logBasic(BaseMessages.getString(PKG,
+                    "ZosFileInput.FileOpened.Message", data.filename));
 
-		}
+        }
 
         try {
             // Tell the reader how many bytes we processed last time
@@ -138,8 +165,8 @@ public class ZosFileInput extends BaseStep implements StepInterface {
             throw new KettleException(e);
         }
 
-		return true;
-	}
+        return true;
+    }
 
 	/**
 	 * Step is no longer needed.

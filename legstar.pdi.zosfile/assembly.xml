@@ -41,7 +41,6 @@ Assembly descriptor for the full distribution.
                 <exclude>org.eclipse.swt:*</exclude> 
                 <exclude>log4j:*</exclude> 
                 <exclude>org.codehaus.jackson:*</exclude> 
-                <exclude>commons-logging:*</exclude> 
                 <exclude>com.legsem.legstar:legstar.pdi.sample.tcobwvb:*</exclude> 
             </excludes>
         </dependencySet>

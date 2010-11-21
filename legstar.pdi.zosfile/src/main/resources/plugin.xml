@@ -8,12 +8,25 @@
    category="Input"
    classname="com.legstar.pdi.zosfile.ZosFileInputMeta">
    <libraries>
+       <!-- runtime libraries -->
        <library name="${artifactId}-${version}.jar"/>
        <library name="${artifactId}-${version}-sources.jar"/>
        <library name="legstar-coxbrt-${legstar.version}.jar"/>
        <library name="legstar-coxbapi-${legstar.version}.jar"/>
        <library name="activation-1.1.jar"/>
        <library name="jaxb-api-2.1.jar"/>
-       <library name="jsr173_api-1.0.jar"/>
+       <library name="commons-io-1.4.jar"/>
+       <!-- design libraries -->
+       <library name="legstar-codegen-${legstar.version}.jar"/>
+       <library name="legstar-cob2trans-${legstar.version}.jar"/>
+       <library name="legstar-cob2xsd-${legstar.cob2xsd.version}.jar"/>
+       <library name="legstar-coxbgen-${legstar.version}.jar"/>
+       <library name="legstar-jaxbgen-${legstar.version}.jar"/>
+       <library name="velocity-1.6.1.jar"/>
+       <library name="XmlSchema-1.4.5.jar"/>
+       <library name="ant-1.6.5.jar"/>
+       <library name="antlr-runtime-3.2.jar"/>
+       <library name="jaxb-impl-2.1.6.jar"/>
+       <library name="jaxb-xjc-2.1.6.jar"/>
    </libraries>
 </plugin>

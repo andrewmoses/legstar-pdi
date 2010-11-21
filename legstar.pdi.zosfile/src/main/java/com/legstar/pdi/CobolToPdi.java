@@ -1,12 +1,19 @@
 package com.legstar.pdi;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.pentaho.di.core.exception.KettleException;
@@ -41,18 +48,24 @@ import com.legstar.coxb.ICobolNationalBinding;
 import com.legstar.coxb.ICobolNumericBinding;
 import com.legstar.coxb.ICobolOctetStreamBinding;
 import com.legstar.coxb.ICobolStringBinding;
+import com.legstar.coxb.cob2trans.Cob2TransException;
+import com.legstar.coxb.cob2trans.Cob2TransGenerator;
+import com.legstar.coxb.cob2trans.Cob2TransGenerator.Cob2TransResult;
+import com.legstar.coxb.cob2trans.Cob2TransListener;
+import com.legstar.coxb.cob2trans.Cob2TransModel;
 import com.legstar.coxb.host.HostContext;
+import com.legstar.coxb.host.HostData;
 import com.legstar.coxb.host.HostException;
 import com.legstar.coxb.impl.reflect.CComplexReflectBinding;
-import com.legstar.coxb.impl.reflect.ReflectBindingException;
-import com.legstar.coxb.transform.AbstractTransformer;
-import com.legstar.coxb.transform.AbstractTransformers;
 import com.legstar.coxb.transform.HostTransformException;
 import com.legstar.coxb.transform.HostTransformStatus;
-import com.legstar.coxb.transform.IHostToJavaTransformer;
+import com.legstar.coxb.transform.IHostTransformers;
+import com.legstar.coxb.util.BindingUtil;
+import com.legstar.coxb.util.ClassUtil;
+import com.legstar.coxb.util.ClassUtil.ClassName;
 
 /**
- * This is a Mediator between PDI objects and LegStar Objects.
+ * This is a Mediator between the PDI API and the LegStar PDI.
  * </p>
  * The idea is to keep the PDI step code as simple as possible and
  * not leak too much LegStar specific code into the step code.
@@ -79,24 +92,146 @@ public class CobolToPdi {
 
 	}
 
-	/**
-	 * Flattens a COBOL structure so that fields become columns in a row.
-	 * <p/>
-	 * For PDI, a row (in the sense of a table row) is the structure that gets
-	 * transmitted over a hop from step to step.
-	 * <p/>
-	 * 
-	 * @param jaxbQualifiedClassName  the JAXB class name
-	 * @return an array of fields as if originating from a text file
-	 * @throws KettleException
-	 *             if failed to get the COBOL structure info from JAXB
-	 */
-	public static CobolFileInputField[] toFieldArray(
-			final String jaxbQualifiedClassName) throws KettleException {
+    /*
+     * ------------------------------------------------------------------------
+     * COBOL to Transformers generation.
+     * ------------------------------------------------------------------------
+     */
+    /**
+     * From COBOL code, this creates a set of transformers, bundles
+     * them in a jar that it stores in the plugin lib sub folder and
+     * produces JAXB root class names, that can be used to map
+     * z/OS file records, as well as a jar file taht bundles all these
+     * artifacts.
+     * <p/>
+     * The jar file name is build from a hash of the COBOL code so that
+     * we get a unique name for each COBOL source.
+     * 
+     * @param cob2trans the generator
+     * @param cobolCode the COBOL code to generate Transformers from
+     * @param listener to report progress
+     * @return the generation results
+     * @throws Cob2TransException
+     *             if failed to get the COBOL structure info from JAXB
+     */
+    public static Cob2TransResult generateTransformer(
+            final Cob2TransGenerator cob2trans,
+            final String cobolCode,
+            final Cob2TransListener listener) throws Cob2TransException {
+        try {
+            cob2trans.addCob2TransListener(listener);
 
-		List<CobolFileInputField> fields = toFields(jaxbQualifiedClassName);
-		return fields.toArray(new CobolFileInputField[fields.size()]);
-	}
+            // TODO add cobolEncoding?
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            byte[] cobolCodeDigest =  md5.digest( cobolCode.getBytes("UTF-8") );
+            
+            Cob2TransResult result = cob2trans.generate(
+                    toTempFile(cobolCode),
+                    "UTF-8",
+                    HostData.toHexString(cobolCodeDigest),
+                    createTempDirectory(),
+                    getClasspath());
+
+            // Deploy the jar to the lib folder
+            FileUtils.copyFileToDirectory(result.jarFile,
+                    new File(getPluginLibLocation()));
+            
+            
+            return result;
+        } catch (IOException e) {
+            throw new Cob2TransException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new Cob2TransException(e);
+        }
+        
+    }
+
+    /**
+     * Dumps content to a temporary file.
+     * 
+     * @param content some COBOL data item descriptions
+     * @return a temporary file with the content
+     * @throws IOException if temp file cannot be created
+     */
+    public static File toTempFile(final String content) throws IOException {
+        File cobolFile = File.createTempFile("legstar", ".cbl");
+        cobolFile.deleteOnExit();
+        FileUtils.writeStringToFile(cobolFile, content, "UTF-8");
+        return cobolFile;
+    }
+
+    /**
+     * Artifacts will be generated in a temporary folder. 
+     * @return the temporary folder
+     * @throws IOException if temp folder cannot be created
+     */
+    public static File createTempDirectory()  throws IOException {
+        File dir = File.createTempFile("legstar", "");
+        dir.delete();
+        dir.mkdir();
+        dir.deleteOnExit();
+        return dir;
+    }
+    
+    /**
+     * Load the configuration file into a Model.
+     * 
+     * @param configFile the configuration file to load
+     * @throws Cob2TransException
+     *             if configuration file missing or file corrupt
+     */
+    public static Cob2TransModel getCob2TransModel(final File configFile) throws Cob2TransException {
+        try {
+            if (configFile == null) {
+                return new Cob2TransModel();
+            } else {
+                Properties config = new Properties();
+                config.load(new FileInputStream(configFile));
+                return new Cob2TransModel(config);
+            }
+        } catch (FileNotFoundException e) {
+            throw new Cob2TransException(e);
+        } catch (IOException e) {
+            throw new Cob2TransException(e);
+        }
+    }
+
+    /*
+     * ------------------------------------------------------------------------
+     * Adapt COBOL hierarchy to PDI flat field list.
+     * ------------------------------------------------------------------------
+     */
+    /**
+     * Flattens a COBOL structure so that fields become columns in a row.
+     * <p/>
+     * For PDI, a row (in the sense of a table row) is the structure that gets
+     * transmitted over a hop from step to step.
+     * <p/>
+     * Here we temporarily setup a ClassLoader using the jar archive that
+     * contains the Transformer code.
+     * 
+     * @param compositeJaxbClassName the JAXB class name and containing jar
+     * @param clazz the caller class to use as a parent ClassLoader to the one
+     *            we temporarily create
+     * @return an array of fields as if originating from a text file
+     * @throws KettleException
+     *             if failed to get the COBOL structure info from JAXB
+     */
+    public static CobolFileInputField[] getCobolFields(
+            final String compositeJaxbClassName,
+            final Class < ? > clazz) throws KettleException {
+
+        ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+        try {
+            CobolToPdi.setTransformerClassLoader(clazz,
+                    getJarFileName(compositeJaxbClassName));
+            List < CobolFileInputField > fields =
+                    toFields(getJaxbClassName(compositeJaxbClassName));
+            return fields.toArray(new CobolFileInputField[fields.size()]);
+        } finally {
+            Thread.currentThread().setContextClassLoader(tccl);
+        }
+    }
 
 	/**
 	 * Flattens a COBOL structure so that fields become columns in a row.
@@ -114,36 +249,17 @@ public class CobolToPdi {
 			final String jaxbQualifiedClassName)
 			throws KettleException {
 		try {
-			ClassName className = toClassName(jaxbQualifiedClassName);
-			Object jaxbObjectFactory = BindingReflectHelper
+			ClassName className = ClassUtil.toClassName(jaxbQualifiedClassName);
+			Object jaxbObjectFactory = BindingUtil
 					.newJaxbObjectFactory(className.packageName);
-			Object jaxbObject = BindingReflectHelper.newJaxbObject(
+			Object jaxbObject = BindingUtil.newJaxbObject(
 					jaxbObjectFactory, className.className);
 			return toFields(jaxbObjectFactory, jaxbObject);
-		} catch (ReflectBindingException e) {
-			throw new KettleException(e);
-		}
+		} catch (CobolBindingException e) {
+            throw new KettleException(e);
+        }
 	}
 
-	/**
-	 * Create an instance of Transformers for a given JAXB root class name.
-	 * Assumes binding classes were generated for this JAXB class.
-	 * TODO reuse COXBGEN code for COXB package name and Transformers name.
-	 * @param jaxbPackageName the JAXB package name
-	 * @param jaxbClassName the JAXB root class name
-	 * @return a new instance of Transformers
-	 * @throws KettleException if transformers cannot be created
-	 */
-	public static AbstractTransformers newTransformers(
-			final String jaxbQualifiedClassName) throws KettleException {
-		try {
-			ClassName className = toClassName(jaxbQualifiedClassName);
-			return (AbstractTransformers) BindingReflectHelper.newTransformers(
-					className.packageName, className.className);
-		} catch (ReflectBindingException e) {
-			throw new KettleException(e);
-		}
-	}
 	/**
 	 * Flattens a COBOL structure so that fields become columns in a row.
 	 * <p/>
@@ -380,25 +496,28 @@ public class CobolToPdi {
         return false;
     }
 
-	/**
-	 * Calculates the maximum byte array length of host data for a LegStar
-	 * binding.
-	 * 
-	 * @param tf
-	 *            the LegStar transformers associated with the binding
-	 * @return the maximum byte array length of host data
-	 * @throws KettleException
-	 *             if binding cannot be accessed
-	 */
-	public static int hostByteLength(final AbstractTransformers tf)
-			throws KettleException {
-		try {
-			return tf.getHostToJava().getBinding().getByteLength();
-		} catch (CobolBindingException e) {
-			throw new KettleException(e);
-		}
-	}
-
+    /*
+     * ------------------------------------------------------------------------
+     * Runtime Transformer execution.
+     * ------------------------------------------------------------------------
+     */
+    /**
+     * Create an instance of Transformers for a given JAXB root class name.
+     * Assumes binding classes were generated for this JAXB class.
+     * 
+     * @param jaxbQualifiedClassName the JAXB class name
+     * @return a new instance of Transformers
+     * @throws KettleException if transformers cannot be created
+     */
+    public static IHostTransformers newTransformers(
+            final String jaxbQualifiedClassName) throws KettleException {
+        try {
+            return BindingUtil.newTransformers(
+                    jaxbQualifiedClassName);
+        } catch (CobolBindingException e) {
+            throw new KettleException(e);
+        }
+    }
 	/**
 	 * Generates row meta structure from a fields array.
 	 * 
@@ -452,20 +571,17 @@ public class CobolToPdi {
      */
 	public static Object[] toOutputRowData(
 			final RowMetaInterface outputRowMeta,
-			final AbstractTransformers tf,
+			final IHostTransformers tf,
 			final byte[] hostRecord,
 			final String hostCharset,
 			final HostTransformStatus status)
 			throws KettleException {
 		try {
 		    int expectedOutputRows = outputRowMeta.getFieldNames().length;
-			IHostToJavaTransformer h2j = tf.getHostToJava();
-			h2j.transform(hostRecord, hostCharset, status);
-			ICobolComplexBinding binding = ((AbstractTransformer) h2j)
-					.getCachedBinding();
+		    tf.toJava(hostRecord, hostCharset, status);
 
 			List<Object> objects = new ArrayList<Object>();
-			toObjects(objects, binding, -1);
+			toObjects(objects, status.getBinding(), -1);
 
 			/* PDI does not support variable size arrays. Need to fill all columns.*/
             for (int i = objects.size(); i < expectedOutputRows; i++) {
@@ -601,29 +717,28 @@ public class CobolToPdi {
 		}
 	}
 	
-	/**
-	 * Separate package name and class name from a qualified class name.
-	 * @param qualifiedClassName qualified class name
-	 * @return a structure with both parts
-	 */
-	public static ClassName toClassName(final String qualifiedClassName) {
-		ClassName className = new ClassName();
-		int pos = qualifiedClassName.lastIndexOf('.');
-		className.packageName = (pos == -1) ? null
-				: qualifiedClassName.substring(0, pos);
-		className.className = (pos == -1) ? qualifiedClassName
-				: qualifiedClassName.substring(pos + 1);
-		return className;
-	}
-	
-	/**
-	 * A simple vehicle for class name and package name.
-	 *
-	 */
-	public static class ClassName {
-		public String className;
-		public String packageName;
-	}
+    /**
+     * The default mainframe character set.
+     * @return the default mainframe character set
+     */
+    public static String getDefaultHostCharset() {
+        return HostContext.getDefaultHostCharsetName();
+    }
+    
+    /**
+     * Allocates a byte array large enough to accommodate the largest host record.
+     * @param transformers the host transformer set
+     * @return a byte array large enough for the largest record
+     * @throws KettleFileException if byte array cannot be allocated
+     */
+    public static byte[] newHostRecord(final IHostTransformers transformers)
+            throws KettleFileException {
+        try {
+            return new byte[transformers.getJavaToHost().getByteLength()];
+        } catch (CobolBindingException e) {
+            throw new KettleFileException(e);
+        }
+    }
 
     /*
      * ------------------------------------------------------------------------
@@ -631,37 +746,38 @@ public class CobolToPdi {
      * ------------------------------------------------------------------------
      */
     /**
-     * Create a new thread context class loader with the jars coming from
-     * our private lib sub folder. These are needed to locate the
-     * JAXB classes with COBOL annotations generated by LegStar.
+     * Create a thread context class loader with an additional jar containing
+     * Transformer and JAXB classes.
      * <p/>
      * This is expensive so avoid doing that several times for the same thread.
      * 
      * @param clazz the class that attempts to set the class loader
+     * @param jarFileName the jar file containing the JAXB classes
      * @throws KettleException if classloader fails
      */
-    public static void setLibClassLoader(Class < ? > clazz) throws KettleException {
+    public static void setTransformerClassLoader(
+            Class < ? > clazz,
+            final String jarFileName) throws KettleException {
+
+        String classLoaderName = LIB_CLASSLOADER_NAME + '.' + jarFileName;
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
         if (tccl instanceof KettleURLClassLoader) {
             if (((KettleURLClassLoader) tccl).getName().equals(
-                    LIB_CLASSLOADER_NAME)) {
+                    classLoaderName)) {
+                // Already setup
                 return;
             }
         }
-        PluginFolder pluginLibFolder = getPluginLibFolder();
-        List<URL> urls = new ArrayList<URL>();
+
         try {
-            if (new File(pluginLibFolder.getFolder()).exists()) {
-                FileObject[] libFiles = pluginLibFolder.findJarFiles();
-                for (FileObject libFile : libFiles) {
-                    urls.add(libFile.getURL());
-                }
-                ClassLoader parent = clazz.getClassLoader();
-                KettleURLClassLoader cl = new KettleURLClassLoader(urls
-                        .toArray(new URL[urls.size()]),
-                        parent, LIB_CLASSLOADER_NAME);
-                Thread.currentThread().setContextClassLoader(cl);
-            }
+            PluginFolder pluginLibFolder = getPluginLibFolder();
+            File jarFile = new File(pluginLibFolder.getFolder() + '/'
+                    + jarFileName);
+            ClassLoader parent = clazz.getClassLoader();
+            KettleURLClassLoader cl = new KettleURLClassLoader(
+                    new URL[] { jarFile.toURI().toURL() },
+                    parent, classLoaderName);
+            Thread.currentThread().setContextClassLoader(cl);
         } catch (Exception e) {
             throw new KettleException(e);
         }
@@ -669,15 +785,23 @@ public class CobolToPdi {
     
     /**
      * Convenience method to get our private lib folder.
-     * <p/>
-     * If we are registered as a plugin (during integration tests or production)
-     * then we get the location of our plugin from the registry otherwise se
-     * assume we are running off "user.dir".
      * 
      * @return a kettle plugin folder
      */
     public static PluginFolder getPluginLibFolder() {
-        
+        return new PluginFolder(getPluginLibLocation(), false, false);
+    }
+    
+    /**
+     * Find out where we are installed within Kettle.
+     * <p/>
+     * If we are registered as a plugin (during integration tests or production)
+     * then we get the location of our plugin from the registry otherwise we
+     * assume we are running off "user.dir".
+     * 
+     * @return the location where the plugin installled
+     */
+    public static String getPluginLocation() {
         String pluginLocation = null;
         PluginInterface plugin = PluginRegistry.getInstance().findPluginWithId(
                 StepPluginType.class,
@@ -688,37 +812,76 @@ public class CobolToPdi {
             pluginLocation = System.getProperty("user.dir") + '/'
                     + DEFAULT_PLUGIN_FOLDER;
         }
-        pluginLocation += '/' + LIB_FOLDER;
-        return new PluginFolder(pluginLocation, false, false);
+        return pluginLocation;
     }
     
+    /**
+     * @return the location of our private lib folder under the plugin
+     */
+    public static String getPluginLibLocation() {
+        return getPluginLocation() + '/' + LIB_FOLDER;
+    }
+    
+    /**
+     * Compiler needs access to LegStar libraries which are installed in the
+     * plugin folder.
+     * @return a classspath usable to start java
+     */
+    @SuppressWarnings("unchecked")
+    public static String getClasspath() {
+        Collection < File > jarFiles = FileUtils.listFiles(new File(
+                getPluginLocation()), new String[] { "jar" }, false);
+        StringBuilder sb = new StringBuilder();
+        boolean next = false;
+        for (File jarFile : jarFiles) {
+            if (next) {
+                sb.append(File.pathSeparator);
+            } else {
+                next = true;
+            }
+            sb.append(jarFile.getPath());
+        }
+        return sb.toString();
+    }
+    
+    /*
+     * ------------------------------------------------------------------------
+     * COBOL-annotated JAXB classes discovery and jar association.
+     * ------------------------------------------------------------------------
+     */
     /**
      * Fetches all available COBOL-annotated JAXB class names from the lib
      * sub-folder.
      * 
      * @return null if no jars found in lib subfolder, otherwise all
-     *         COBOL-annotated JAXB classes
+     *         COBOL-annotated JAXB classes along with the jar file name which
+     *         contains that class. Each item in the list is formatted
+     *         like so: className[jarFileName]
      * @throws KettleFileException in case of read failure on the jar files
      */
-    public static List < String > getAvailableJaxbClassNames()
+    public static List < String > getAvailableCompositeJaxbClassNames()
             throws KettleFileException {
         try {
-            List < String > jaxbclassNames = null;
+            List < String > compositeJaxbclassNames = null;
             FileObject[] fileObjects = getPluginLibFolder().findJarFiles();
             if (fileObjects != null && fileObjects.length > 0) {
-                jaxbclassNames = new ArrayList < String >();
+                compositeJaxbclassNames = new ArrayList < String >();
                 for (FileObject fileObject : fileObjects) {
                     AnnotationDB annotationDB = new AnnotationDB();
                     annotationDB.scanArchives(fileObject.getURL());
                     Set < String > classNames = annotationDB
                             .getAnnotationIndex()
                             .get(LEGSTAR_ANNOTATIONS);
-                    if (classNames != null && classNames.size() > 0) {
-                        jaxbclassNames.addAll(classNames);
+                    if (classNames != null) {
+                        for (String className : classNames) {
+                            compositeJaxbclassNames.add(getCompositeJaxbClassName(
+                                    className, fileObject.getName()
+                                            .getBaseName()));
+                        }
                     }
                 }
             }
-            return jaxbclassNames;
+            return compositeJaxbclassNames;
         } catch (FileSystemException e) {
             throw new KettleFileException(e);
         } catch (IOException e) {
@@ -727,11 +890,44 @@ public class CobolToPdi {
     }
     
     /**
-     * The default mainframe character set.
-     * @return the default mainframe character set
+     * Compose a name concatenating class name and containing jar file name.
+     * @param qualifiedClassName the class name
+     * @param jarFileName the containing jar file name
+     * @return a string such as qualifiedClassName[jarFileName]
      */
-    public static String getDefaultHostCharset() {
-        return HostContext.getDefaultHostCharsetName();
+    public static String getCompositeJaxbClassName(
+            final String qualifiedClassName,
+            final String jarFileName) {
+        return qualifiedClassName + "[" + jarFileName + "]";
+    }
+    
+    /**
+     * Strip the containing jar file name and return the bare class name.
+     * @param compositeJAXBClassName a string concatenating jar file name and class name
+     * @return the bare class name part of the composite class name
+     */
+    public static String getJaxbClassName(final String compositeJAXBClassName) {
+        int i = compositeJAXBClassName.indexOf('[');
+        if (i > 0) {
+            return compositeJAXBClassName.substring(0, i);
+        }
+        return compositeJAXBClassName;
+    }
+    
+    /**
+     * Strip the class name and return the jar file name.
+     * 
+     * @param compositeJAXBClassName a string concatenating jar file name and
+     *            class name
+     * @return the bare jar file name of the composite class name
+     */
+    public static String getJarFileName(final String compositeJAXBClassName) {
+        int i = compositeJAXBClassName.indexOf('[');
+        if (i > 0) {
+            return compositeJAXBClassName.substring(i + 1,
+                    compositeJAXBClassName.length() - 1);
+        }
+        return null;
     }
 
 }

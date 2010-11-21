@@ -10,7 +10,7 @@ import com.legstar.pdi.io.ZosVariableRDWFileInputStream;
 import com.legstar.pdi.zosfile.ZosFileInputMeta;
 
 /**
- * A utility class to determine the type of file io needed based
+ * A utility class to determine the type of file i/o needed based
  * upon the user options selected in PDI.
  * 
  */

@@ -228,21 +228,21 @@ public class CobolToPdiTest extends TestCase {
 	/**
 	 * Test calculation of host byte array length.
 	 */
-	public void testHostByteLength() {
-		try {
-			assertEquals(
-					79,
-					CobolToPdi
-							.hostByteLength(new com.legstar.test.coxb.lsfileae.bind.DfhcommareaTransformers()));
-			assertEquals(
-					32025,
-					CobolToPdi
-							.hostByteLength(new com.legstar.test.coxb.dplarcht.bind.DfhcommareaTransformers()));
-		} catch (KettleException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
+    public void testHostByteLength() {
+        try {
+            assertEquals(
+                    79,
+                    CobolToPdi
+                            .newHostRecord((new com.legstar.test.coxb.lsfileae.bind.DfhcommareaTransformers())).length);
+            assertEquals(
+                    32025,
+                    CobolToPdi
+                            .newHostRecord(new com.legstar.test.coxb.dplarcht.bind.DfhcommareaTransformers()).length);
+        } catch (KettleException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 	
 	/**
 	 * Test transformation and generation of PDI output row data.
@@ -252,8 +252,9 @@ public class CobolToPdiTest extends TestCase {
 		
 		RowMetaInterface outputRowMeta = new RowMeta();
 		CobolToPdi.fieldsToRowMeta(
-				CobolToPdi.toFieldArray(
-						"com.legstar.test.coxb.lsfileae.Dfhcommarea"), 
+				CobolToPdi.getCobolFields(
+						"com.legstar.test.coxb.lsfileae.Dfhcommarea",
+						getClass()), 
 				null,
 				outputRowMeta);
 		

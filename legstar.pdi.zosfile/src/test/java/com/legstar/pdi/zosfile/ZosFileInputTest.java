@@ -1,9 +1,11 @@
 package com.legstar.pdi.zosfile;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 
 
+import org.apache.commons.io.FileUtils;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -22,8 +24,27 @@ import com.legstar.pdi.zosfile.ZosFileInputMeta;
  */
 public class ZosFileInputTest extends TransformationTestCase {
 
-	public ZosFileInputTest() throws KettleException {
+	private String saveUserDir = System.getProperty("user.dir");
+
+    
+    public ZosFileInputTest() throws KettleException {
 		super();
+	}
+	
+	/**
+	 *  {@inheritDoc}
+	 * We fake a lib folder as would normally be found on a legstar-pdi installation.
+	 *  */
+    public void setUp() throws Exception {
+	    saveUserDir = System.getProperty("user.dir");
+	    File mockUserDir = new File("target");
+	    File mockPluginLib = new File(mockUserDir, CobolToPdi.DEFAULT_PLUGIN_FOLDER + '/' + CobolToPdi.LIB_FOLDER);
+	    FileUtils.forceMkdir(mockPluginLib);
+	    System.setProperty("user.dir", mockUserDir.getAbsolutePath());
+	}
+	
+	public void tearDown() {
+	    System.setProperty("user.dir", saveUserDir);
 	}
 	
 	/**
@@ -37,12 +58,13 @@ public class ZosFileInputTest extends TransformationTestCase {
         ZosFileInputMeta zosFileInputMeta = new ZosFileInputMeta();
 
         zosFileInputMeta
-                .setJaxbQualifiedClassName("com.legstar.test.coxb.tcobwvb.CustomerData");
+                .setCompositeJaxbClassName("com.legstar.test.coxb.tcobwvb.CustomerData");
         zosFileInputMeta
                 .setFilename("src/test/resources/ZOS.TCOBWVB.ROW1.bin");
 
-		zosFileInputMeta.setInputFields(CobolToPdi.toFieldArray(
-		        zosFileInputMeta.getJaxbQualifiedClassName()));
+		zosFileInputMeta.setInputFields(CobolToPdi.getCobolFields(
+		        zosFileInputMeta.getCompositeJaxbClassName(),
+		        getClass()));
 
 		TransMeta transMeta = TransTestFactory.generateTestTransformation(
 				new Variables(), zosFileInputMeta, stepName);

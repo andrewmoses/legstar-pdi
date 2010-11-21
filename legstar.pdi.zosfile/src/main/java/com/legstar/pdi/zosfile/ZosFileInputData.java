@@ -4,8 +4,8 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
-import com.legstar.coxb.transform.AbstractTransformers;
 import com.legstar.coxb.transform.HostTransformStatus;
+import com.legstar.coxb.transform.IHostTransformers;
 import com.legstar.pdi.io.ZosFileInputStream;
 
 /**
@@ -19,7 +19,7 @@ public class ZosFileInputData extends BaseStepData implements StepDataInterface 
 
 	public String filename;
 	
-    public String jaxbQualifiedClassname;
+    public String compositeJaxbClassName;
 	
     public String hostCharset;
     
@@ -27,7 +27,8 @@ public class ZosFileInputData extends BaseStepData implements StepDataInterface 
 	
 	public HostTransformStatus status;
 
-	AbstractTransformers tf;
+	IHostTransformers tf;
+	
 	byte[] hostRecord;
 
 	public ZosFileInputData() {
