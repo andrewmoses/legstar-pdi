@@ -14,7 +14,6 @@ import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import com.legstar.coxb.cob2trans.Cob2TransException;
 import com.legstar.coxb.cob2trans.Cob2TransGenerator;
 import com.legstar.coxb.cob2trans.Cob2TransInterruptedException;
-import com.legstar.coxb.cob2trans.Cob2TransModel;
 import com.legstar.coxb.cob2trans.Cob2TransGenerator.Cob2TransResult;
 import com.legstar.coxb.util.ClassUtil;
 import com.legstar.pdi.zosfile.ZosFileInputDialog;
@@ -32,6 +31,7 @@ import com.legstar.pdi.zosfile.ZosFileInputDialog;
  */
 public class CobolToFieldsProgressDialog {
 
+    /** For i18n purposes. */
     private static Class<?> PKG = ZosFileInputDialog.class;
 
     /** The SWT shell. */
@@ -68,26 +68,18 @@ public class CobolToFieldsProgressDialog {
                             getI18N("ZosFileInputDialog.Cob2TransBegin.DialogMessage"),
                             Cob2TransGenerator.TOTAL_STEPS);
 
-                    // TODO Get the model from config file
-                    Cob2TransGenerator cob2trans =
-                            new Cob2TransGenerator(new Cob2TransModel());
-
-                    Cob2TransListenerAdapter listener =
-                            new Cob2TransListenerAdapter(cob2trans, monitor);
-
                     Cob2TransResult result = CobolToPdi.generateTransformer(
-                            cob2trans, _cobolCode, listener);
+                            monitor, _cobolCode);
 
                     _compositeJaxbClassNames = new ArrayList < String >();
                     for (String rootClassName : result.coxbgenResult.rootClassNames) {
                         _compositeJaxbClassNames
-                                .add(
-                                CobolToPdi.getCompositeJaxbClassName(
-                                        result.jarFile.getName(),
+                                .add(CobolToPdi.getCompositeJaxbClassName(
                                         ClassUtil
                                                 .toQualifiedClassName(
                                                         result.coxbgenResult.jaxbPackageName,
-                                                        rootClassName)));
+                                                        rootClassName),
+                                        result.jarFile.getName()));
                     }
 
                 } catch (Cob2TransException e) {

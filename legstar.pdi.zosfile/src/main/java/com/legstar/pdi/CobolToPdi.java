@@ -16,6 +16,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.plugins.KettleURLClassLoader;
@@ -51,7 +52,6 @@ import com.legstar.coxb.ICobolStringBinding;
 import com.legstar.coxb.cob2trans.Cob2TransException;
 import com.legstar.coxb.cob2trans.Cob2TransGenerator;
 import com.legstar.coxb.cob2trans.Cob2TransGenerator.Cob2TransResult;
-import com.legstar.coxb.cob2trans.Cob2TransListener;
 import com.legstar.coxb.cob2trans.Cob2TransModel;
 import com.legstar.coxb.host.HostContext;
 import com.legstar.coxb.host.HostData;
@@ -82,6 +82,12 @@ public class CobolToPdi {
     /** The relative location of our private lib folder. */
     public static final String LIB_FOLDER = "lib";
     
+    /** The relative location of our private configuration folder. */
+    public static final String CONF_FOLDER = "conf";
+    
+    /** The configuration file name. */
+    public static final String CONF_FILE_NAME = "cob2trans.properties";
+    
     /** The JAXB/COBOL Legstar classes should be annotated with this. */
     public static final String LEGSTAR_ANNOTATIONS = "com.legstar.coxb.CobolElement";
 
@@ -107,26 +113,29 @@ public class CobolToPdi {
      * The jar file name is build from a hash of the COBOL code so that
      * we get a unique name for each COBOL source.
      * 
-     * @param cob2trans the generator
+     * @param monitor an Eclipse monitor to report generation progress
      * @param cobolCode the COBOL code to generate Transformers from
-     * @param listener to report progress
      * @return the generation results
      * @throws Cob2TransException
      *             if failed to get the COBOL structure info from JAXB
      */
     public static Cob2TransResult generateTransformer(
-            final Cob2TransGenerator cob2trans,
-            final String cobolCode,
-            final Cob2TransListener listener) throws Cob2TransException {
+            final IProgressMonitor monitor,
+            final String cobolCode) throws Cob2TransException {
         try {
+
+            Cob2TransGenerator cob2trans = new Cob2TransGenerator(
+                    CobolToPdi.getCob2TransModel());
+            Cob2TransListenerAdapter listener = new Cob2TransListenerAdapter(
+                    cob2trans, monitor);
             cob2trans.addCob2TransListener(listener);
 
             // TODO add cobolEncoding?
             MessageDigest md5 = MessageDigest.getInstance("MD5");
-            byte[] cobolCodeDigest =  md5.digest( cobolCode.getBytes("UTF-8") );
-            
+            byte[] cobolCodeDigest = md5.digest(cobolCode.getBytes("UTF-8"));
+
             Cob2TransResult result = cob2trans.generate(
-                    toTempFile(cobolCode),
+                    toTempFile(cobolCode, "UTF-8"),
                     "UTF-8",
                     HostData.toHexString(cobolCodeDigest),
                     createTempDirectory(),
@@ -135,28 +144,29 @@ public class CobolToPdi {
             // Deploy the jar to the lib folder
             FileUtils.copyFileToDirectory(result.jarFile,
                     new File(getPluginLibLocation()));
-            
-            
+
             return result;
         } catch (IOException e) {
             throw new Cob2TransException(e);
         } catch (NoSuchAlgorithmException e) {
             throw new Cob2TransException(e);
         }
-        
+
     }
 
     /**
      * Dumps content to a temporary file.
      * 
      * @param content some COBOL data item descriptions
+     * @param encoding the encoding to use when writing to file
      * @return a temporary file with the content
      * @throws IOException if temp file cannot be created
      */
-    public static File toTempFile(final String content) throws IOException {
+    public static File toTempFile(final String content, final String encoding)
+            throws IOException {
         File cobolFile = File.createTempFile("legstar", ".cbl");
         cobolFile.deleteOnExit();
-        FileUtils.writeStringToFile(cobolFile, content, "UTF-8");
+        FileUtils.writeStringToFile(cobolFile, content, encoding);
         return cobolFile;
     }
 
@@ -176,11 +186,23 @@ public class CobolToPdi {
     /**
      * Load the configuration file into a Model.
      * 
+     * @throws Cob2TransException
+     *             if configuration file missing or file corrupt
+     */
+    public static Cob2TransModel getCob2TransModel() throws Cob2TransException {
+        return getCob2TransModel(new File(getPluginConfLocation() + '/'
+                + CONF_FILE_NAME));
+    }
+
+    /**
+     * Load the configuration file into a Model.
+     * 
      * @param configFile the configuration file to load
      * @throws Cob2TransException
      *             if configuration file missing or file corrupt
      */
-    public static Cob2TransModel getCob2TransModel(final File configFile) throws Cob2TransException {
+    public static Cob2TransModel getCob2TransModel(final File configFile)
+            throws Cob2TransException {
         try {
             if (configFile == null) {
                 return new Cob2TransModel();
@@ -820,6 +842,13 @@ public class CobolToPdi {
      */
     public static String getPluginLibLocation() {
         return getPluginLocation() + '/' + LIB_FOLDER;
+    }
+    
+    /**
+     * @return the location of our private configuration folder under the plugin
+     */
+    public static String getPluginConfLocation() {
+        return getPluginLocation() + '/' + CONF_FOLDER;
     }
     
     /**

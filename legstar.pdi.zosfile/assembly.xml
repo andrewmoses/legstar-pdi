@@ -20,6 +20,11 @@ Assembly descriptor for the full distribution.
           <outputDirectory>/</outputDirectory>
           <filtered>true</filtered>
         </file>
+        <!-- Copy cob2trans configuration file -->
+        <file>
+          <source>src/main/resources/conf/cob2trans.properties</source>
+          <outputDirectory>/conf</outputDirectory>
+        </file>
     </files>
 
     <fileSets>
