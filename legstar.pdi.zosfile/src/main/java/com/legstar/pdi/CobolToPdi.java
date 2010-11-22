@@ -115,13 +115,15 @@ public class CobolToPdi {
      * 
      * @param monitor an Eclipse monitor to report generation progress
      * @param cobolCode the COBOL code to generate Transformers from
+     * @param cobolCharset the COBOL code encoding
      * @return the generation results
      * @throws Cob2TransException
      *             if failed to get the COBOL structure info from JAXB
      */
     public static Cob2TransResult generateTransformer(
             final IProgressMonitor monitor,
-            final String cobolCode) throws Cob2TransException {
+            final String cobolCode,
+            final String cobolCharset) throws Cob2TransException {
         try {
 
             Cob2TransGenerator cob2trans = new Cob2TransGenerator(
@@ -132,11 +134,11 @@ public class CobolToPdi {
 
             // TODO add cobolEncoding?
             MessageDigest md5 = MessageDigest.getInstance("MD5");
-            byte[] cobolCodeDigest = md5.digest(cobolCode.getBytes("UTF-8"));
+            byte[] cobolCodeDigest = md5.digest(cobolCode.getBytes(cobolCharset));
 
             Cob2TransResult result = cob2trans.generate(
-                    toTempFile(cobolCode, "UTF-8"),
-                    "UTF-8",
+                    toTempFile(cobolCode, cobolCharset),
+                    cobolCharset,
                     HostData.toHexString(cobolCodeDigest),
                     createTempDirectory(),
                     getClasspath());

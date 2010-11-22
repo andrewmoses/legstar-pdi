@@ -119,6 +119,9 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
     /** Browse button to locate the COBOL file. */
     private Button       wbbCobolFile;
     
+    /** The choice of available charater sets for COBOL files. */
+    private Combo        wCobolCharset;
+
     /** The COBOL code describing the z/OS file records. */
     private Text         wCobolSource;
     
@@ -654,6 +657,9 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         // Add the button to select COBOL file
         Control last = addSelectCobolFileButton(composite, middle, margin);
         
+        // Add the combo to select COBOL character set
+        last = addCharacterSetCombo(composite, last, middle, margin);
+        
         // Add the COBOL code edit box
         last = addCobolEditBox(composite, last, middle, margin);
 
@@ -706,6 +712,47 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         wbbCobolFile.setLayoutData(fdb);
 
         return wbbCobolFile;
+
+    }
+    
+    /**
+     * This combo box lists the available character sets from which user
+     * can pick the one that encodes the COBOL file.
+     * 
+     * @param parent the parent container
+     * @param lastControl the last control to position from
+     * @param middle percentage of the parent widget
+     * @param margin offset from that position
+     * @return the new control
+     */
+    protected Control addCharacterSetCombo(
+            final Composite parent,
+            final Control lastControl,
+            final int middle,
+            final int margin) {
+
+        wCobolCharset = new Combo(parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER | SWT.READ_ONLY);
+        wCobolCharset.setToolTipText(getI18N(
+                "ZosFileInputDialog.CobolCharset.Tooltip"));
+        wCobolCharset.setItems(availableCharsets());
+        props.setLook(wCobolCharset);
+        
+        FormData fd = new FormData();
+        fd.top = new FormAttachment(0, margin);
+        fd.right = new FormAttachment(100, 0);
+        wCobolCharset.setLayoutData(fd);
+        
+        Label wlCobolCharset = new Label(parent, SWT.RIGHT);
+        wlCobolCharset.setText(getI18N(
+                "ZosFileInputDialog.CobolCharset.Label"));
+        props.setLook(wlCobolCharset);
+        FormData fdl = new FormData();
+        //fdl.left = new FormAttachment(middle, 0);
+        fdl.top = new FormAttachment(0, margin);
+        fdl.right = new FormAttachment(wCobolCharset, -margin);
+        wlCobolCharset.setLayoutData(fdl);
+
+        return wCobolCharset;
 
     }
     
@@ -936,6 +983,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         wFilename.addModifyListener(lsMod);
         wHostCharset.addModifyListener(lsMod);
         wCobolSource.addModifyListener(lsMod);
+        wCobolCharset.addModifyListener(lsMod);
         wCompositeJaxbClassNames.addModifyListener(lsMod);
 
         lsCancel = new Listener() {
@@ -1138,19 +1186,20 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
                 try {
                     FileDialog dialog = new FileDialog(shell, SWT.OPEN);
                     dialog.setFilterExtensions(new String[] { "*.cbl;*.cob",
-                            "*" });
+                            "*.cpy;*.copy", "*" });
 
                     dialog.setFilterNames(new String[] {
                                 getI18N("ZosFileInputDialog.FileType.CobolFiles"),
-                                          getI18N("System.FileType.AllFiles") });
+                                getI18N("ZosFileInputDialog.FileType.CopyFiles"),
+                                getI18N("System.FileType.AllFiles")
+                                          });
 
                     if (dialog.open() != null) {
                         filePath = dialog.getFilterPath()
                                 + System.getProperty("file.separator")
                                 + dialog.getFileName();
-                        // TODO add COBOL file encoding
                         wCobolSource.setText(FileUtils.readFileToString(new File(
-                                filePath)));
+                                filePath), wCobolCharset.getText()));
                     }
                 } catch (IOException e1) {
                     invalidCobolFileDialog(filePath, e1.getMessage());
@@ -1286,7 +1335,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
         CobolToFieldsProgressDialog progressDialog =
                 new CobolToFieldsProgressDialog(wFields.getShell(),
-                        wCobolSource.getText());
+                        wCobolSource.getText(),
+                        wCobolCharset.getText());
 
         if (progressDialog.open()) {
 
@@ -1389,9 +1439,10 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
                 .getSelection());
         meta.setHostCharset(wHostCharset.getText());
 
-        meta.setFromCobolSource(wCobolSource.getText().length() > 0);
+        meta.setFromCobolSource(wrbCobolSourceInput.getSelection());
         meta.setCompositeJaxbClassName(wCompositeJaxbClassNames.getText());
         meta.setCobolSource(wCobolSource.getText());
+        meta.setCobolCharset(wCobolCharset.getText());
         
         int nrNonEmptyFields = wFields.nrNonEmpty(); 
         meta.setInputFields(new CobolFileInputField[nrNonEmptyFields]);
@@ -1435,6 +1486,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         }
         initCompositeJaxbClassNamesCombo(_inputMeta.getCompositeJaxbClassName());
         wCobolSource.setText(Const.NVL(_inputMeta.getCobolSource(), ""));
+        wCobolCharset.select(wCobolCharset.indexOf(_inputMeta.getCobolCharset()));
         doSelectInputType();
         
         setDialogFieldsFromMetaData(_inputMeta.getInputFields());
