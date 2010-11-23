@@ -16,7 +16,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <pdi.version>4.0.1-GA</pdi.version>
-    <legstar.version>1.4.0</legstar.version>
+    <legstar.version>1.4.1</legstar.version>
+    <legstar.cob2xsd.version>0.3.2</legstar.cob2xsd.version>
     <eclipse.version>3.2.1</eclipse.version>
   </properties>
 
@@ -94,24 +95,8 @@
     </snapshotRepository>
   </distributionManagement>
 
-  <repositories>
-    <repository>
-      <id>pentaho-repo</id>
-      <url>http://repo.pentaho.org/artifactory/pentaho/</url>
-    </repository>
-    <repository>
-      <id>pentaho-third-party</id>
-      <url>http://repo.pentaho.org/artifactory/third-party/</url>
-    </repository>
-    <repository>
-      <id>legstar-distribution</id>
-      <url>http://www.legsem.com/legstar/maven/repo</url>
-    </repository>
-  </repositories>
-
   <modules>
     <module>legstar.pdi.zosfile</module>
-    <module>legstar.pdi.sample.tcobwvb</module>
   </modules>
 
   <build>
@@ -200,53 +185,95 @@
           <version>1.1</version>
         </plugin>
 
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId> 
+          <artifactId>maven-javadoc-plugin</artifactId> 
+          <version>2.6</version> 
+        </plugin>
+
       </plugins>
 
     </pluginManagement>
 
     <plugins>
 
+      <!-- All modules bundle their sources at package time -->
       <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <inherited>false</inherited>
-        <executions>
-          <execution>
-          <id>aggregate-sources</id>
-          <phase>verify</phase>
-          <goals>
-            <goal>aggregate</goal>
-          </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <inherited>true</inherited>
         <executions>
           <execution>
-          <id>project-sources</id>
-          <goals>
-            <goal>jar</goal>
-          </goals>
+            <id>project-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <excludeResources>true</excludeResources>
+            </configuration>
           </execution>
         </executions>
+
       </plugin>
-    </plugins>
+
+      <!-- All sources are aggregated together at package time -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>aggregate-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>aggregate</goal>
+            </goals>
+            <configuration>
+              <excludeResources>true</excludeResources>
+            </configuration>
+          </execution>
+        </executions>
+
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+
+          <!-- Produce javadoc for each module -->
+          <execution>
+            <id>package-module-javadoc</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+
+          <!-- Produce aggregated javadoc for all modules -->
+          <execution>
+            <id>package-aggregate-javadoc</id>
+            <phase>package</phase>
+            <goals>
+              <goal>aggregate-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <links>
+            <link>http://download.oracle.com/javaee/1.5/api/</link>
+            <link>http://download.oracle.com/javase/1.5.0/docs/api/</link>
+          </links>
+        </configuration>
+      </plugin>
+
+      </plugins>
 
   </build>
 
   <dependencyManagement>
 
     <dependencies>
-
-      <!-- Inter modules dependencies -->    
-      <dependency>
-        <groupId>${groupId}</groupId>
-        <artifactId>legstar.pdi.sample.tcobwvb</artifactId>
-        <version>${version}</version>
-      </dependency>
-
 
       <!-- PDI dependencies -->
       <dependency>
@@ -295,6 +322,30 @@
         <version>${eclipse.version}</version>
         <scope>provided</scope>
       </dependency>
+      <dependency>
+        <groupId>org.eclipse.jface</groupId>
+        <artifactId>org.eclipse.jface</artifactId>
+        <version>${eclipse.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.core</groupId>
+        <artifactId>org.eclipse.core.runtime</artifactId>
+        <version>3.2.0</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.core</groupId>
+        <artifactId>org.eclipse.core.runtime.compatibility</artifactId>
+        <version>3.1.100</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.equinox</groupId>
+        <artifactId>org.eclipse.equinox.common</artifactId>
+        <version>3.2.0</version>
+        <scope>provided</scope>
+      </dependency>
   
       <!-- LegStar dependencies -->
       <dependency>
@@ -302,7 +353,19 @@
         <artifactId>legstar-coxbrt</artifactId>
         <version>${legstar.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.legsem.legstar</groupId>
+        <artifactId>legstar-cob2trans</artifactId>
+        <version>${legstar.version}</version>
+      </dependency>
   
+      <!-- Apache commons IO  -->    
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>1.4</version>
+      </dependency>
+
      <!--
        TEST dependencies
       -->
