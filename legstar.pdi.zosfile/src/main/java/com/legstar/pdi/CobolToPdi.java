@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,9 +15,11 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs.FileObject;
 import org.apache.commons.vfs.FileSystemException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.plugins.KettleURLClassLoader;
@@ -63,6 +66,7 @@ import com.legstar.coxb.transform.IHostTransformers;
 import com.legstar.coxb.util.BindingUtil;
 import com.legstar.coxb.util.ClassUtil;
 import com.legstar.coxb.util.ClassUtil.ClassName;
+import com.legstar.coxb.util.NameUtil;
 
 /**
  * This is a Mediator between the PDI API and the LegStar PDI.
@@ -110,38 +114,84 @@ public class CobolToPdi {
      * z/OS file records, as well as a jar file taht bundles all these
      * artifacts.
      * <p/>
-     * The jar file name is build from a hash of the COBOL code so that
-     * we get a unique name for each COBOL source.
+     * The jar file name is build from a hash of the COBOL code so that we get a
+     * unique name for each COBOL source.
      * 
-     * @param monitor an Eclipse monitor to report generation progress
-     * @param cobolCode the COBOL code to generate Transformers from
+     * @param monitor an Eclipse monitor to report generation progress (null
+     *            means no monitoring)
+     * @param stepName used to create a more meaningful package name for the
+     *            artifacts generated
+     * @param cobolSource the COBOL code to generate Transformers from
      * @param cobolCharset the COBOL code encoding
+     * @param cobolFilePath the COBOL file path (null if none)
      * @return the generation results
      * @throws Cob2TransException
      *             if failed to get the COBOL structure info from JAXB
      */
     public static Cob2TransResult generateTransformer(
             final IProgressMonitor monitor,
-            final String cobolCode,
-            final String cobolCharset) throws Cob2TransException {
+            final String stepName,
+            final String cobolSource,
+            final String cobolCharset,
+            final String cobolFilePath) throws Cob2TransException {
+        return generateTransformer(monitor, stepName, cobolSource,
+                cobolCharset, cobolFilePath, getPdiPluginClasspath());
+        
+    }
+    /**
+     * From COBOL code, this creates a set of transformers, bundles
+     * them in a jar that it stores in the plugin lib sub folder and
+     * produces JAXB root class names, that can be used to map
+     * z/OS file records, as well as a jar file taht bundles all these
+     * artifacts.
+     * <p/>
+     * The jar file name is build from a hash of the COBOL code so that we get a
+     * unique name for each COBOL source.
+     * 
+     * @param monitor an Eclipse monitor to report generation progress (null
+     *            means no monitoring)
+     * @param stepName used to create a more meaningful package name for the
+     *            artifacts generated
+     * @param cobolSource the COBOL code to generate Transformers from
+     * @param cobolCharset the COBOL code encoding
+     * @param cobolFilePath the COBOL file path (null if none)
+     * @param classPath a classpath parameter to pass on to compiler
+     * @return the generation results
+     * @throws Cob2TransException
+     *             if failed to get the COBOL structure info from JAXB
+     */
+    public static Cob2TransResult generateTransformer(
+            final IProgressMonitor monitor,
+            final String stepName,
+            final String cobolSource,
+            final String cobolCharset,
+            final String cobolFilePath,
+            final String classPath) throws Cob2TransException {
         try {
 
-            Cob2TransGenerator cob2trans = new Cob2TransGenerator(
-                    CobolToPdi.getCob2TransModel());
-            Cob2TransListenerAdapter listener = new Cob2TransListenerAdapter(
-                    cob2trans, monitor);
-            cob2trans.addCob2TransListener(listener);
-
-            // TODO add cobolEncoding?
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            byte[] cobolCodeDigest = md5.digest(cobolCode.getBytes(cobolCharset));
+            String packageName = getPackageName(stepName, cobolSource,
+                    cobolCharset, cobolFilePath);
+            
+            Cob2TransModel model = CobolToPdi.getCob2TransModel();
+            String jaxbPackageName = getJaxbPackageName(model.getJaxbGenModel()
+                    .getJaxbPackageName(), packageName);
+            model.getJaxbGenModel().setJaxbPackageName(jaxbPackageName);
+            model.getCoxbGenModel().setJaxbPackageName(jaxbPackageName);
+            
+            Cob2TransGenerator cob2trans = new Cob2TransGenerator(model);
+            
+            if (monitor != null) {
+                Cob2TransListenerAdapter listener = new Cob2TransListenerAdapter(
+                        cob2trans, monitor);
+                cob2trans.addCob2TransListener(listener);
+            }
 
             Cob2TransResult result = cob2trans.generate(
-                    toTempFile(cobolCode, cobolCharset),
+                    toTempFile(cobolSource, cobolCharset),
                     cobolCharset,
-                    HostData.toHexString(cobolCodeDigest),
+                    packageName,
                     createTempDirectory(),
-                    getClasspath());
+                    classPath);
 
             // Deploy the jar to the lib folder
             FileUtils.copyFileToDirectory(result.jarFile,
@@ -150,10 +200,87 @@ public class CobolToPdi {
             return result;
         } catch (IOException e) {
             throw new Cob2TransException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new Cob2TransException(e);
         }
 
+    }
+    
+    /**
+     * The JAXB package name is built from a prefix and the group of artifacts package name.
+     * 
+     * @param jaxbPackageNamePrefix the JAXB package name prefix (or null if
+     *            none)
+     * @param packageName the artifacts package name
+     * @return a more meaningful package name
+     */
+    public static String getJaxbPackageName(final String jaxbPackageNamePrefix,
+            final String packageName) {
+        if (Const.isEmpty(packageName)) {
+            return jaxbPackageNamePrefix;
+        }
+        if (jaxbPackageNamePrefix == null) {
+            return packageName;
+        } else {
+            return jaxbPackageNamePrefix + '.' + packageName;
+        }
+    }
+    
+    /**
+     * Artifacts generated are grouped in a package which name is determined
+     * here.
+     * </p>
+     * The name is built from the step name and one of the COBOL file path base
+     * name or a hash from the COBOL source itself if we don't have a file path.
+     * 
+     * @param stepName the setp name
+     * @param cobolSource the COBOL source code
+     * @param cobolCharset the COBOL code encoding
+     * @param cobolFilePath the COBOL file path (null if none)
+     * @return a package name usage as a java package name part or a jar file
+     *         base name
+     * @throws Cob2TransException if name cannot be determined
+     */
+    public static String getPackageName(
+            final String stepName,
+            final String cobolSource,
+            final String cobolCharset,
+            final String cobolFilePath) throws Cob2TransException {
+        try {
+            String baseName = null;
+            if (cobolFilePath == null) {
+                MessageDigest md5 = MessageDigest.getInstance("MD5");
+                byte[] cobolCodeDigest = md5.digest(cobolSource.getBytes(cobolCharset));
+                baseName = toJavaIdentifier(HostData.toHexString(cobolCodeDigest));
+            } else {
+                baseName = toJavaIdentifier(FilenameUtils.getBaseName(cobolFilePath));
+            }
+            if (Const.isEmpty(stepName)) {
+                return baseName;
+            }
+            return toJavaIdentifier(stepName) + '.' + baseName;
+            
+        } catch (NoSuchAlgorithmException e) {
+            throw new Cob2TransException(e);
+        } catch (UnsupportedEncodingException e) {
+            throw new Cob2TransException(e);
+        }
+    }
+    
+    /**
+     * Turn a character string into a valid java identifier usable as both a
+     * package name part and a file base name.
+     * 
+     * @param str the character string
+     * @return a valid java identifier usable as a package name part or a file
+     *         base name
+     */
+    public static String toJavaIdentifier(final String str) {
+        String variable = NameUtil.toVariableName(str.replace(" ", ""))
+                .toLowerCase();
+        // Make sure first char is valid
+        if (!Character.isJavaIdentifierStart(variable.charAt(0))) {
+            variable = '_' + variable;
+        }
+        return variable;
     }
 
     /**
@@ -859,7 +986,7 @@ public class CobolToPdi {
      * @return a classspath usable to start java
      */
     @SuppressWarnings("unchecked")
-    public static String getClasspath() {
+    public static String getPdiPluginClasspath() {
         Collection < File > jarFiles = FileUtils.listFiles(new File(
                 getPluginLocation()), new String[] { "jar" }, false);
         StringBuilder sb = new StringBuilder();

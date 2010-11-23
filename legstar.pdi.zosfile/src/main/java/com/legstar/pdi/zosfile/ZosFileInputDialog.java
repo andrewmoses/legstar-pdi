@@ -121,6 +121,12 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
     
     /** The choice of available charater sets for COBOL files. */
     private Combo        wCobolCharset;
+    
+    /**
+     * When COBOL is imported from a file, we keep its location to help naming
+     * artifacts package.
+     */
+    private String _cobolFilePath;
 
     /** The COBOL code describing the z/OS file records. */
     private Text         wCobolSource;
@@ -1200,6 +1206,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
                                 + dialog.getFileName();
                         wCobolSource.setText(FileUtils.readFileToString(new File(
                                 filePath), wCobolCharset.getText()));
+                        _cobolFilePath = filePath;
                     }
                 } catch (IOException e1) {
                     invalidCobolFileDialog(filePath, e1.getMessage());
@@ -1335,8 +1342,10 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
         CobolToFieldsProgressDialog progressDialog =
                 new CobolToFieldsProgressDialog(wFields.getShell(),
+                        wStepname.getText(),
                         wCobolSource.getText(),
-                        wCobolCharset.getText());
+                        wCobolCharset.getText(),
+                        _cobolFilePath);
 
         if (progressDialog.open()) {
 
@@ -1443,6 +1452,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         meta.setCompositeJaxbClassName(wCompositeJaxbClassNames.getText());
         meta.setCobolSource(wCobolSource.getText());
         meta.setCobolCharset(wCobolCharset.getText());
+        meta.setCobolFilePath(_cobolFilePath);
         
         int nrNonEmptyFields = wFields.nrNonEmpty(); 
         meta.setInputFields(new CobolFileInputField[nrNonEmptyFields]);
@@ -1487,6 +1497,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         initCompositeJaxbClassNamesCombo(_inputMeta.getCompositeJaxbClassName());
         wCobolSource.setText(Const.NVL(_inputMeta.getCobolSource(), ""));
         wCobolCharset.select(wCobolCharset.indexOf(_inputMeta.getCobolCharset()));
+        _cobolFilePath = _inputMeta.getCobolFilePath();
         doSelectInputType();
         
         setDialogFieldsFromMetaData(_inputMeta.getInputFields());

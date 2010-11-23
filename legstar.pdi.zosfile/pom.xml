@@ -73,17 +73,11 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>1.4</version>
     </dependency>
 
    <!-- 
      TEST dependencies
     -->
-    <dependency>
-      <groupId>${groupId}</groupId>
-      <artifactId>legstar.pdi.sample.tcobwvb</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>pentaho.kettle</groupId>
       <artifactId>kettle-test</artifactId>
@@ -114,16 +108,62 @@
     <plugins>
 
       <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+        
+          <!-- Deploy zip file locally for integration tests and to pdi.
+               We remove the dependency jars from the plugin itself because
+               they are already loaded by the launcher. If we leave them,
+               we get ClassCastExceptions because Kettle also loads these
+               classes with a new class loader and hence clashes with launcher.
+               But since we need these dependencies when we call the 
+               java compiler, we store them aside (hence the move).
+               
+               The last unzip deploys to a full copy of Kettle for
+               further testing.
+               
+           -->
+          <execution>
+            <id>integration-tests</id>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <tasks>
+                <property environment="env" />
+                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}/plugins/steps" overwrite="true" />
+                <move todir="${project.build.directory}/plugins/steps/compile">
+                  <fileset dir="${project.build.directory}/plugins/steps" includes="**/*.jar" />
+                </move>
+                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${env.KETTLE_DIR}/plugins/steps" overwrite="true" />
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
+        </executions>
+      </plugin>
+
+      <!-- Integration tests (runs classes xxxITCase) -->
+      <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
         <executions>
           <execution>
+            <id>integration-test</id>
             <goals>
               <goal>integration-test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>verify</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
 
+      <!-- Create the distribution -->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId> 
         <executions>
@@ -140,35 +180,6 @@
               </descriptors>
             </configuration>
           </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-        
-          <!-- Deploy zip file locally for integration tests and to pdi.
-               In the case of integration tests, we remove the jars from
-               the plugin itself because they are already loaded by the
-               launcher (leaving them causes ClassCastExceptions) -->
-          <execution>
-            <id>integration-tests</id>
-            <phase>pre-integration-test</phase>
-            <configuration>
-              <tasks>
-                <property environment="env" />
-                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}/plugins/steps" overwrite="true" />
-                <delete>
-                  <fileset dir="${project.build.directory}/plugins/steps" includes="**/*.jar" />
-                </delete>
-                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${env.KETTLE_DIR}/plugins/steps" overwrite="true" />
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-
         </executions>
       </plugin>
 

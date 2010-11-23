@@ -1,11 +1,9 @@
 package com.legstar.pdi.zosfile;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
 
 
-import org.apache.commons.io.FileUtils;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -24,29 +22,14 @@ import com.legstar.pdi.zosfile.ZosFileInputMeta;
  */
 public class ZosFileInputTest extends TransformationTestCase {
 
-	private String saveUserDir = System.getProperty("user.dir");
-
-    
     public ZosFileInputTest() throws KettleException {
-		super();
-	}
-	
-	/**
-	 *  {@inheritDoc}
-	 * We fake a lib folder as would normally be found on a legstar-pdi installation.
-	 *  */
-    public void setUp() throws Exception {
-	    saveUserDir = System.getProperty("user.dir");
-	    File mockUserDir = new File("target");
-	    File mockPluginLib = new File(mockUserDir, CobolToPdi.DEFAULT_PLUGIN_FOLDER + '/' + CobolToPdi.LIB_FOLDER);
-	    FileUtils.forceMkdir(mockPluginLib);
-	    System.setProperty("user.dir", mockUserDir.getAbsolutePath());
-	}
-	
-	public void tearDown() {
-	    System.setProperty("user.dir", saveUserDir);
-	}
-	
+        super();
+    }
+
+    public ZosFileInputTest(String name) throws KettleException {
+        super(name);
+    }
+
 	/**
 	 * Initialize meta data as the dialog would have done and then run the step.
 	 * The PDI test framework automatically creates a transformation where our

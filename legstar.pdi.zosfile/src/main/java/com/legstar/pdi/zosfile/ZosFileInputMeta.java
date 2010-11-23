@@ -61,6 +61,9 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
     /** Used to serialize/deserialize the COBOL host character set. */
     public static final String COBOL_CHARSET_TAG = "cobolcharset";
 
+    /** Used to serialize/deserialize the COBOL file path. */
+    public static final String COBOL_FILE_PATH_TAG = "cobolfilepath";
+
     /** Used to serialize/deserialize the field name attribute. */
     public static final String FIELD_NAME_TAG = "name";
 
@@ -111,6 +114,9 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /** The COBOL character set. */
     private String _cobolCharset;
+
+    /** The COBOL file path. */
+    private String _cobolFilePath;
 
     /** Fields from a z/OS file record. */
     private CobolFileInputField[] _inputFields;
@@ -248,6 +254,20 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
         _cobolCharset = cobolCharset;
     }
 
+    /**
+     * @return the COBOL file path
+     */
+    public String getCobolFilePath() {
+        return _cobolFilePath;
+    }
+
+    /**
+     * @param cobolFilePath the COBOL file path to set
+     */
+    public void setCobolFilePath(String cobolFilePath) {
+        this._cobolFilePath = cobolFilePath;
+    }
+
 	/**
 	 * @return the inputFields
 	 */
@@ -295,6 +315,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
                 _compositeJaxbClassName);
         addTagValue(retval, COBOL_SOURCE_TAG, _cobolSource, _cobolCharset);
         addTagValue(retval, COBOL_CHARSET_TAG, _cobolCharset);
+        addTagValue(retval, COBOL_FILE_PATH_TAG, _cobolFilePath);
 
         retval.append("    <fields>").append(Const.CR);
         for (int i = 0; i < _inputFields.length; i++) {
@@ -409,6 +430,8 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
                     COBOL_CHARSET_TAG, Charset.defaultCharset().name());
             _cobolSource = getTagString(stepnode,
                     COBOL_SOURCE_TAG, _cobolCharset, null);
+            _cobolFilePath = getTagString(stepnode,
+                    COBOL_FILE_PATH_TAG, null);
 
             Node fields = XMLHandler.getSubNode(stepnode, "fields");
             int nFields = XMLHandler.countNodes(fields, "field");
@@ -551,6 +574,8 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
                     COBOL_SOURCE_TAG);
             _cobolCharset = rep.getStepAttributeString(id_step,
                     COBOL_CHARSET_TAG);
+            _cobolFilePath = rep.getStepAttributeString(id_step,
+                    COBOL_FILE_PATH_TAG);
             
 			int nFields = rep.countNrStepAttributes(id_step,
 			        "field_" + FIELD_NAME_TAG);
@@ -602,6 +627,8 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
                     COBOL_SOURCE_TAG, _cobolSource);
             rep.saveStepAttribute(id_transformation, id_step,
                     COBOL_CHARSET_TAG, _cobolCharset);
+            rep.saveStepAttribute(id_transformation, id_step,
+                    COBOL_FILE_PATH_TAG, _cobolFilePath);
 
 			for (int i = 0; i < _inputFields.length; i++) {
 				CobolFileInputField field = _inputFields[i];

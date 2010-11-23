@@ -37,11 +37,17 @@ public class CobolToFieldsProgressDialog {
     /** The SWT shell. */
     private Shell _shell;
     
+    /** The step name. */
+    private String _stepName;
+    
     /** The COBOL code to translate. */
     private String _cobolCode;
     
     /** The COBOL code encoding. */
     private String _cobolCharset;
+    
+    /** The COBOL file path. */
+    private String _cobolFilePath;
     
     /** The generated JAXB root classes suffixed with their containing jar file.*/
     private List < String > _compositeJaxbClassNames;
@@ -50,16 +56,22 @@ public class CobolToFieldsProgressDialog {
      * Creates a new dialog that will handle the wait while loading a
      * transformation...
      * @param shell the SWT shell
+     * @param stepName the step name
      * @param cobolCode COBOL code to translat
      * @param cobolCharset COBOL code encoding
+     * @param cobolFilePath COBOL file path
      */
     public CobolToFieldsProgressDialog(
             final Shell shell,
+            final String stepName,
             final String cobolCode,
-            final String cobolCharset) {
+            final String cobolCharset,
+            final String cobolFilePath) {
         _shell = shell;
+        _stepName = stepName;
         _cobolCode = cobolCode;
         _cobolCharset = cobolCharset;
+        _cobolFilePath = cobolFilePath;
     }
     
     /**
@@ -79,7 +91,8 @@ public class CobolToFieldsProgressDialog {
                             Cob2TransGenerator.TOTAL_STEPS);
 
                     Cob2TransResult result = CobolToPdi.generateTransformer(
-                            monitor, _cobolCode, _cobolCharset);
+                            monitor, _stepName, _cobolCode, _cobolCharset,
+                            _cobolFilePath);
 
                     _compositeJaxbClassNames = new ArrayList < String >();
                     for (String rootClassName : result.coxbgenResult.rootClassNames) {
