@@ -944,7 +944,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
                 };
 
         wFields = new TableView(transMeta, parent, SWT.FULL_SELECTION
-                | SWT.MULTI, colinf, 1, readOnly, null, props);
+                | SWT.MULTI, colinf, 0, readOnly, null, props);
 
         FormData fdFields = new FormData();
         fdFields.left  = new FormAttachment(0, 0);
@@ -1011,6 +1011,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 		lsGet = new Listener() {
             public void handleEvent(Event e) {
                 getCobolFields();
+                enableOrDisable();
             }
         };
 
@@ -1116,28 +1117,16 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         try {
             List < String > compositeJaxbClassNames =
                     CobolToPdi.getAvailableCompositeJaxbClassNames();
-            if (compositeJaxbClassNames == null) {
-                cobolAnnotatedJaxbClassErrorDialog(getI18N(
-                        "ZosFileInputDialog.NoJarsInLib.DialogMessage",
-                                CobolToPdi.getPluginLibFolder().getFolder()));
-            } else {
-                if (compositeJaxbClassNames.size() == 0) {
-                    cobolAnnotatedJaxbClassErrorDialog(getI18N(
-                            "ZosFileInputDialog.NoJAXBCOBOLClassesInLib.DialogMessage",
-                                    CobolToPdi
-                                            .getPluginLibFolder()
-                                            .getFolder()));
-                } else {
-                    Collections.sort(compositeJaxbClassNames);
-                    wCompositeJaxbClassNames
-                            .setItems(compositeJaxbClassNames
-                                    .toArray(new String[compositeJaxbClassNames
-                                            .size()]));
-                    if (compositeJaxbClassName != null) {
-                        wCompositeJaxbClassNames.select(
-                                wCompositeJaxbClassNames
-                                        .indexOf(compositeJaxbClassName));
-                    }
+            if (!Const.isEmpty(compositeJaxbClassNames)) {
+                Collections.sort(compositeJaxbClassNames);
+                wCompositeJaxbClassNames
+                        .setItems(compositeJaxbClassNames
+                                .toArray(new String[compositeJaxbClassNames
+                                        .size()]));
+                if (compositeJaxbClassName != null) {
+                    wCompositeJaxbClassNames.select(
+                            wCompositeJaxbClassNames
+                                    .indexOf(compositeJaxbClassName));
                 }
             }
         } catch (KettleFileException e1) {
@@ -1252,7 +1241,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
             wGet.setEnabled(false);
         }
 
-        if (wFields.table.getItemCount() > 0
+        if (wFields.nrNonEmpty() > 0
                 && wFilename.getText().length() > 0) {
             wPreview.setEnabled(true);
         } else {
@@ -1503,6 +1492,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         setDialogFieldsFromMetaData(_inputMeta.getInputFields());
 
         wStepname.selectAll();
+        enableOrDisable();
     }
     
     /**
