@@ -98,7 +98,7 @@
            </partitioning>
     <compositejaxbclassname>com.legstar.test.coxb.tcobwvb.CustomerData</compositejaxbclassname>
     <hostcharset>IBM01140</hostcharset>
-    <filename>D:\Legsem\Legstar\pdi\legstar-pdi\trunk\legstar.pdi.sample.tcobwvb\src\main\files\ZOS.TCOBWVB.RDW.bin</filename>
+    <filename>${user.dir}/src/main/file/ZOS.FCUSTDAT.RDW.bin</filename>
     <isvariablelength>Y</isvariablelength>
     <hasrdw>Y</hasrdw>
     <fields>
