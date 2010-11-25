@@ -476,7 +476,7 @@ public class CobolToPdi {
 			for (ICobolBinding child : ((ICobolComplexBinding) binding)
 					.getChildrenList()) {
 				String newPrefix = (prefix == null) ? ""
-						: (prefix.isEmpty() ? binding.getBindingName() : prefix
+						: (prefix.length() == 0 ? binding.getBindingName() : prefix
 								+ "_" + binding.getBindingName());
 				toFields(fields, child, newPrefix, suffix, redefined);
 			}
@@ -484,7 +484,7 @@ public class CobolToPdi {
 			/* Opt to process the first alternative only and mark
 			 * all descendants as redefined. */
 			String newPrefix = (prefix == null) ? ""
-					: (prefix.isEmpty() ? binding.getBindingName() : prefix
+					: (prefix.length() == 0 ? binding.getBindingName() : prefix
 							+ "_" + binding.getBindingName());
 			toFields(fields, ((ICobolChoiceBinding) binding)
 					.getAlternativesList().get(0), newPrefix, suffix, true);
@@ -616,7 +616,7 @@ public class CobolToPdi {
 	    String name = bindingName + ((suffix == null) ? "" : suffix);
 	   
 	    // nothing to disambiguate with
-	    if (prefix == null || prefix.isEmpty()) {
+	    if (Const.isEmpty(prefix)) {
 	        return name;
 	    }
 	    String[] prefixes = prefix.split("_");
