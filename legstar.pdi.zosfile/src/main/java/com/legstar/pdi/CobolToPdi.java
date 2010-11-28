@@ -56,6 +56,7 @@ import com.legstar.coxb.cob2trans.Cob2TransException;
 import com.legstar.coxb.cob2trans.Cob2TransGenerator;
 import com.legstar.coxb.cob2trans.Cob2TransGenerator.Cob2TransResult;
 import com.legstar.coxb.cob2trans.Cob2TransModel;
+import com.legstar.coxb.gen.CoxbGenException;
 import com.legstar.coxb.host.HostContext;
 import com.legstar.coxb.host.HostData;
 import com.legstar.coxb.host.HostException;
@@ -173,9 +174,8 @@ public class CobolToPdi {
                     cobolCharset, cobolFilePath);
             
             Cob2TransModel model = CobolToPdi.getCob2TransModel();
-            String jaxbPackageName = getJaxbPackageName(model.getJaxbGenModel()
+            String jaxbPackageName = getJaxbPackageName(model.getCoxbGenModel()
                     .getJaxbPackageName(), packageName);
-            model.getJaxbGenModel().setJaxbPackageName(jaxbPackageName);
             model.getCoxbGenModel().setJaxbPackageName(jaxbPackageName);
             
             Cob2TransGenerator cob2trans = new Cob2TransGenerator(model);
@@ -199,6 +199,8 @@ public class CobolToPdi {
 
             return result;
         } catch (IOException e) {
+            throw new Cob2TransException(e);
+        } catch (CoxbGenException e) {
             throw new Cob2TransException(e);
         }
 
@@ -231,7 +233,7 @@ public class CobolToPdi {
      * The name is built from the step name and one of the COBOL file path base
      * name or a hash from the COBOL source itself if we don't have a file path.
      * 
-     * @param stepName the setp name
+     * @param stepName the step name
      * @param cobolSource the COBOL source code
      * @param cobolCharset the COBOL code encoding
      * @param cobolFilePath the COBOL file path (null if none)

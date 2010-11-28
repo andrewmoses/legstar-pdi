@@ -16,7 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <pdi.version>4.0.1-GA</pdi.version>
-    <legstar.version>1.4.1</legstar.version>
+    <legstar.version>1.4.2</legstar.version>
     <legstar.cob2xsd.version>0.3.2</legstar.cob2xsd.version>
     <eclipse.version>3.2.1</eclipse.version>
   </properties>
@@ -188,7 +188,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId> 
           <artifactId>maven-javadoc-plugin</artifactId> 
-          <version>2.6</version> 
+          <version>2.5</version> 
         </plugin>
 
       </plugins>
