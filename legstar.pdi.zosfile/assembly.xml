@@ -14,12 +14,6 @@ Assembly descriptor for the full distribution.
           <source>src/main/resources/ZOSFIN.png</source>
           <outputDirectory>/</outputDirectory>
         </file>
-        <!-- Copy plugin descriptor -->
-        <file>
-          <source>src/main/resources/plugin.xml</source>
-          <outputDirectory>/</outputDirectory>
-          <filtered>true</filtered>
-        </file>
         <!-- Copy cob2trans configuration file -->
         <file>
           <source>src/main/resources/conf/cob2trans.properties</source>
@@ -28,26 +22,51 @@ Assembly descriptor for the full distribution.
     </files>
 
     <fileSets>
-        <!-- Copy over the jar -->
+        <!-- Copy over the jar directly under the plugin folder
+             where it will be discovered by PDI. -->
         <fileSet>
             <directory>${project.build.directory}</directory>
             <outputDirectory>/</outputDirectory>
             <includes>
                 <include>*.jar</include>
             </includes>
+            <excludes>
+                <exclude>*sources.jar</exclude>
+            </excludes>
+        </fileSet>
+
+        <!-- Copy sources jar to the lib folder so that it
+             gets picked up in the classpath. -->
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>/lib</outputDirectory>
+            <includes>
+                <include>*sources.jar</include>
+            </includes>
         </fileSet>
     </fileSets>
-    
+
     <dependencySets>
         <dependencySet>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory>/lib</outputDirectory>
             <excludes>
-                <exclude>org.pentaho:*</exclude> 
-                <exclude>org.eclipse.swt:*</exclude> 
-                <exclude>log4j:*</exclude> 
-                <exclude>org.codehaus.jackson:*</exclude> 
+                <!-- Already present in PDI. -->
+                <exclude>com.legsem.legstar:legstar.pdi.zosfile:jar</exclude>
+
+                <!-- Already present in PDI runtime and not needed for compilation. -->
+                <exclude>log4j:*</exclude>
+                <exclude>javax.xml.bind:jsr173_api:*</exclude>
+                <exclude>commons-collections:*</exclude>
+                <exclude>commons-lang:*</exclude>
+                <exclude>oro:*</exclude>
+                <exclude>commons-cli:*</exclude>
+                <exclude>commons-io:*</exclude>
+                <exclude>javax.activation:*</exclude>
+
+                <!-- Not used for now. -->
+                <exclude>org.codehaus.jackson:*</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>
-    
+
 </assembly>

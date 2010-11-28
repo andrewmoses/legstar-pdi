@@ -47,8 +47,8 @@ public class ZosFileITCase extends TestCase {
      * 
      * */
     public void setUp() throws KettleException {
-        System.setProperty("KETTLE_PLUGIN_BASE_FOLDERS",
-                Const.DEFAULT_PLUGIN_BASE_FOLDERS + ",target/plugins");
+        System.setProperty(Const.KETTLE_PLUGIN_CLASSES,
+                "com.legstar.pdi.zosfile.ZosFileInputMeta");
         KettleEnvironment.init();
     }
 
@@ -114,7 +114,8 @@ public class ZosFileITCase extends TestCase {
         String cobolSource = FileUtils.readFileToString(cobolSourceFile,
                 cobolCharset);
 
-        Cob2TransResult cob2transResult = CobolToPdi.generateTransformer(null, zosFileInputStepName,
+        Cob2TransResult cob2transResult = CobolToPdi.generateTransformer(null,
+                zosFileInputStepName,
                 cobolSource,
                 cobolCharset, cobolSourceFile.getPath(),
                 getCompilerClassPath());
@@ -185,7 +186,7 @@ public class ZosFileITCase extends TestCase {
     @SuppressWarnings("unchecked")
     protected String getCompilerClassPath() {
         Collection < File > jarFiles = FileUtils.listFiles(new File(
-                "target/plugins/steps/compile/legstar.pdi.zosfile"),
+                "target/plugins/compile/lib"),
                 new String[] { "jar" }, false);
         StringBuilder sb = new StringBuilder();
         boolean next = false;

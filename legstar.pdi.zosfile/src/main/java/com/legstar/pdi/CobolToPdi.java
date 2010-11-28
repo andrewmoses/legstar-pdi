@@ -82,10 +82,13 @@ public class CobolToPdi {
     public static final String LIB_CLASSLOADER_NAME = "legstar.pdi.lib";
     
     /** The default plugin location. */
-    public static final String DEFAULT_PLUGIN_FOLDER = "plugins/steps/legstar.pdi.zosfile";
+    public static final String DEFAULT_PLUGIN_FOLDER = "plugins/legstar.pdi.zosfile";
     
-    /** The relative location of our private lib folder. */
+    /** The relative location the lib folder (known to PDI). */
     public static final String LIB_FOLDER = "lib";
+    
+    /** The relative location our private user folder to hold generated jars. */
+    public static final String USER_FOLDER = "user";
     
     /** The relative location of our private configuration folder. */
     public static final String CONF_FOLDER = "conf";
@@ -193,9 +196,9 @@ public class CobolToPdi {
                     createTempDirectory(),
                     classPath);
 
-            // Deploy the jar to the lib folder
+            // Deploy the jar to the user folder
             FileUtils.copyFileToDirectory(result.jarFile,
-                    new File(getPluginLibLocation()));
+                    new File(getPluginUserLocation()));
 
             return result;
         } catch (IOException e) {
@@ -321,8 +324,10 @@ public class CobolToPdi {
      *             if configuration file missing or file corrupt
      */
     public static Cob2TransModel getCob2TransModel() throws Cob2TransException {
-        return getCob2TransModel(new File(getPluginConfLocation() + '/'
-                + CONF_FILE_NAME));
+        File configFile = (getPluginConfLocation() == null) ? null : new File(
+                getPluginConfLocation() + '/'
+                        + CONF_FILE_NAME);
+        return getCob2TransModel(configFile);
     }
 
     /**
@@ -903,14 +908,22 @@ public class CobolToPdi {
      * Transformer and JAXB classes.
      * <p/>
      * This is expensive so avoid doing that several times for the same thread.
+     * <p/>
+     * The jar is expected to live in a user sub folder under our plugin where
+     * it was either generated or manually copied from elsewhere.
      * 
      * @param clazz the class that attempts to set the class loader
-     * @param jarFileName the jar file containing the JAXB classes
+     * @param jarFileName the jar file containing the JAXB classes. If null
+     *            this is a no op
      * @throws KettleException if classloader fails
      */
     public static void setTransformerClassLoader(
             Class < ? > clazz,
             final String jarFileName) throws KettleException {
+
+        if (jarFileName == null) {
+            return;
+        }
 
         String classLoaderName = LIB_CLASSLOADER_NAME + '.' + jarFileName;
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
@@ -923,8 +936,7 @@ public class CobolToPdi {
         }
 
         try {
-            PluginFolder pluginLibFolder = getPluginLibFolder();
-            File jarFile = new File(pluginLibFolder.getFolder() + '/'
+            File jarFile = new File(getPluginUserLocation() + '/'
                     + jarFileName);
             ClassLoader parent = clazz.getClassLoader();
             KettleURLClassLoader cl = new KettleURLClassLoader(
@@ -937,12 +949,12 @@ public class CobolToPdi {
     }
     
     /**
-     * Convenience method to get our private lib folder.
+     * Convenience method to get our private user folder.
      * 
      * @return a kettle plugin folder
      */
-    public static PluginFolder getPluginLibFolder() {
-        return new PluginFolder(getPluginLibLocation(), false, false);
+    public static PluginFolder getPluginUserFolder() {
+        return new PluginFolder(getPluginUserLocation(), false, false);
     }
     
     /**
@@ -960,7 +972,9 @@ public class CobolToPdi {
                 StepPluginType.class,
                 "com.legstar.pdi.zosfile");
         if (plugin != null) {
-            pluginLocation = plugin.getPluginDirectory().getPath();
+            if (plugin.getPluginDirectory() != null) {
+                pluginLocation = plugin.getPluginDirectory().getPath();
+            }
         } else {
             pluginLocation = System.getProperty("user.dir") + '/'
                     + DEFAULT_PLUGIN_FOLDER;
@@ -969,28 +983,36 @@ public class CobolToPdi {
     }
     
     /**
-     * @return the location of our private lib folder under the plugin
+     * @return the location of the lib folder (known to PDI) under the plugin
      */
     public static String getPluginLibLocation() {
         return getPluginLocation() + '/' + LIB_FOLDER;
     }
     
     /**
+     * @return the location of our private user folder under the plugin
+     */
+    public static String getPluginUserLocation() {
+        return getPluginLocation() + '/' + USER_FOLDER;
+    }
+    
+    /**
      * @return the location of our private configuration folder under the plugin
      */
     public static String getPluginConfLocation() {
-        return getPluginLocation() + '/' + CONF_FOLDER;
+        return (getPluginLocation() == null) ? null : getPluginLocation() + '/'
+                + CONF_FOLDER;
     }
     
     /**
      * Compiler needs access to LegStar libraries which are installed in the
-     * plugin folder.
-     * @return a classspath usable to start java
+     * plugin folder inder the lib subfolder.
+     * @return a classpath usable to start java
      */
     @SuppressWarnings("unchecked")
     public static String getPdiPluginClasspath() {
         Collection < File > jarFiles = FileUtils.listFiles(new File(
-                getPluginLocation()), new String[] { "jar" }, false);
+                getPluginLibLocation()), new String[] { "jar" }, false);
         StringBuilder sb = new StringBuilder();
         boolean next = false;
         for (File jarFile : jarFiles) {
@@ -1010,10 +1032,10 @@ public class CobolToPdi {
      * ------------------------------------------------------------------------
      */
     /**
-     * Fetches all available COBOL-annotated JAXB class names from the lib
+     * Fetches all available COBOL-annotated JAXB class names from the user
      * sub-folder.
      * 
-     * @return null if no jars found in lib subfolder, otherwise all
+     * @return null if no jars found in user sub folder, otherwise all
      *         COBOL-annotated JAXB classes along with the jar file name which
      *         contains that class. Each item in the list is formatted
      *         like so: className[jarFileName]
@@ -1023,7 +1045,7 @@ public class CobolToPdi {
             throws KettleFileException {
         try {
             List < String > compositeJaxbclassNames = null;
-            FileObject[] fileObjects = getPluginLibFolder().findJarFiles();
+            FileObject[] fileObjects = getPluginUserFolder().findJarFiles();
             if (fileObjects != null && fileObjects.length > 0) {
                 compositeJaxbclassNames = new ArrayList < String >();
                 for (FileObject fileObject : fileObjects) {

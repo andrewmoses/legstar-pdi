@@ -1299,7 +1299,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 	 */
     protected void getCobolFields() {
 
-        if (wCobolSource.getText().length() > 0) {
+        if (wrbCobolSourceInput.getSelection()
+                && wCobolSource.getText().length() > 0) {
             if (!generateTransformer()) {
                 // An error dialog should have been displayed
                 return;
