@@ -4,11 +4,11 @@
   <parent>
     <groupId>com.legsem.legstar</groupId>
     <artifactId>legstar.pdi</artifactId>
-    <version>0.3-SNAPSHOT</version>
+    <version>0.3</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>legstar.pdi.zosfile</artifactId>
-  <version>0.3-SNAPSHOT</version>
+  <version>0.3</version>
   <packaging>jar</packaging>
 
   <name>legstar.pdi.zosfile</name>
