@@ -126,7 +126,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      * When COBOL is imported from a file, we keep its location to help naming
      * artifacts package.
      */
-    private String _cobolFilePath;
+    private String       _cobolFilePath;
 
     /** The COBOL code describing the z/OS file records. */
     private Text         wCobolSource;

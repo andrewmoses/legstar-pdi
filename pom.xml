@@ -237,39 +237,80 @@
 
       </plugin>
 
-      <plugin>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <executions>
-
-          <!-- Produce javadoc for each module -->
-          <execution>
-            <id>package-module-javadoc</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-
-          <!-- Produce aggregated javadoc for all modules -->
-          <execution>
-            <id>package-aggregate-javadoc</id>
-            <phase>package</phase>
-            <goals>
-              <goal>aggregate-jar</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <links>
-            <link>http://download.oracle.com/javaee/1.5/api/</link>
-            <link>http://download.oracle.com/javase/1.5.0/docs/api/</link>
-          </links>
-        </configuration>
-      </plugin>
-
       </plugins>
 
   </build>
+
+    <!-- Override super POM release behavior.
+         With super POM, aggregate sources don't get attached at release time.
+         We also generate signatures and javadocs to conform with Central policies
+      -->
+    <profiles>
+        <profile>
+            <id>release-profile</id>
+            
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                </property>
+            </activation>
+            
+            <build>
+
+                <plugins>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <inherited>true</inherited>
+                        
+                        <configuration>
+                            <updateReleaseInfo>true</updateReleaseInfo>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+        
+                            <!-- Produce javadoc for each module -->
+                            <execution>
+                                <id>package-module-javadoc</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+        
+                        </executions>
+                        <configuration>
+                            <excludePackageNames>com.legstar.test.*:com.legstar.xsdc.test.*:com.legstar.coxb.cust.*</excludePackageNames>
+                            <links>
+                                <link>http://download.oracle.com/javaee/1.5/api/</link>
+                                <link>http://download.oracle.com/javase/1.5.0/docs/api/</link>
+                            </links>
+                        </configuration>
+                    </plugin>
+        
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
   <dependencyManagement>
 

@@ -29,4 +29,18 @@
        <library name="jaxb-impl-2.1.6.jar"/>
        <library name="jaxb-xjc-2.1.6.jar"/>
    </libraries>
+
+   <localized_category>
+       <category locale="en_US">Input</category>
+       <category locale="fr_FR">Extraction</category>
+   </localized_category>
+   <localized_description>
+       <description locale="en_US">z/OS File Input plugin</description>
+       <description locale="fr_FR">Extraction de fichier z/OS</description>
+   </localized_description>
+   <localized_tooltip>
+       <tooltip locale="en_US">Reads binary z/OS records using LegStar</tooltip>
+       <tooltip locale="fr_FR">Lits des enregistrements binaires z/OS avec LegStar</tooltip>
+   </localized_tooltip>
+   
 </plugin>
