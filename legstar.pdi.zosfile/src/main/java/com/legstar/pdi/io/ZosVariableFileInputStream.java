@@ -27,22 +27,22 @@ import java.io.IOException;
  * operation contains the residual, unprocessed, data so that we can present it
  * on the next read.
  */
-public class ZosVariableFileInputStream extends FileInputStream implements ZosFileInputStream {
+public class ZosVariableFileInputStream extends FileInputStream implements
+        ZosFileInputStream {
 
     /** The last number of bytes read from the file. */
     private int _count;
-    
-    /** Number of bytes that were passed to the user but he did not process yet.*/
+
+    /** Number of bytes that were passed to the user but he did not process yet. */
     private int _residual;
-    
+
     /**
      * Create a z/OS file stream.
      * 
      * @param arg0 the underlying file name
      * @throws FileNotFoundException if file cannot be located
      */
-    public ZosVariableFileInputStream(File arg0)
-            throws FileNotFoundException {
+    public ZosVariableFileInputStream(File arg0) throws FileNotFoundException {
         super(arg0);
         _count = 0;
         _residual = 0;
@@ -52,7 +52,7 @@ public class ZosVariableFileInputStream extends FileInputStream implements ZosFi
      * Reads bytes from the underlying file.
      * 
      * @param b the buffer to be filled if possible. It should still contain
-     *            what was read last time
+     *        what was read last time
      * @return the number of bytes available to process (-1 if file exhausted)
      * @throws IOException if reading fails
      */
@@ -69,9 +69,9 @@ public class ZosVariableFileInputStream extends FileInputStream implements ZosFi
      * left).
      * 
      * @param b the buffer to be filled if possible. It should still contains
-     *            what was read last time
+     *        what was read last time
      * @param processed the number of bytes that were processed following the
-     *            previous read operation.
+     *        previous read operation.
      * @return the number of bytes available to process (-1 if file exhausted)
      * @throws IOException if reading fails
      */
@@ -81,8 +81,6 @@ public class ZosVariableFileInputStream extends FileInputStream implements ZosFi
         if (_residual == b.length) {
             _count = 0;
             return _residual;
-        } else if (_residual == -1) {
-            return _residual;
         } else if (_residual > 0) {
             System.arraycopy(b, processed, b, 0, _residual);
         }
@@ -90,6 +88,7 @@ public class ZosVariableFileInputStream extends FileInputStream implements ZosFi
         _count = super.read(b, _residual, b.length - _residual);
         if (_count == -1) {
             if (_residual > 0) {
+                _count = 0;
                 return _residual;
             } else {
                 return _count;
