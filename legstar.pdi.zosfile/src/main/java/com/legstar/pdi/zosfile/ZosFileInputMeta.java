@@ -6,8 +6,10 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
-
-import org.pentaho.di.core.*;
+import org.pentaho.di.core.CheckResult;
+import org.pentaho.di.core.CheckResultInterface;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.Counter;
 import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -37,18 +39,12 @@ import com.legstar.pdi.CobolToPdi;
  * This is a Kettle step implementation class. Acts as a model and knows how to
  * serialize itself both in XML or a Kettle repository.
  */
-@Step(
-    id="com.legstar.pdi.zosfile",
-    name="ZosFileInputMeta.Step.Name",
-    description="ZosFileInputMeta.Step.Description",
-    categoryDescription="ZosFileInputMeta.Step.CategoryDescription",
-    image="ZOSFIN.png",
-    i18nPackageName="com.legstar.pdi.zosfile/messages"
+@Step(id = "com.legstar.pdi.zosfile", name = "ZosFileInputMeta.Step.Name", description = "ZosFileInputMeta.Step.Description", categoryDescription = "ZosFileInputMeta.Step.CategoryDescription", image = "ZOSFIN.png", i18nPackageName = "com.legstar.pdi.zosfile/messages"
 
 )
 public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface {
 
-	/** I18N identifier.*/
+    /** I18N identifier. */
     private static Class<?> PKG = ZosFileInputMeta.class;
 
     /*
@@ -59,13 +55,13 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /** Used to serialize/deserialize the file name. */
     public static final String FILE_NAME_TAG = "filename";
-    
+
     /** Used to serialize/deserialize isVariableLength. */
     public static final String IS_VARIABLE_LENGTH_TAG = "isvariablelength";
 
     /** Used to serialize/deserialize hasRecordDescriptorWord. */
     public static final String HAS_RECORD_DESCRIPTOR_WORD_TAG = "hasrdw";
-    
+
     /** Used to serialize/deserialize the mainframe host character set. */
     public static final String HOST_CHARSET_TAG = "hostcharset";
 
@@ -74,7 +70,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /** Used to serialize/deserialize the JAXB composite class name. */
     public static final String COMPOSITE_JAXB_CLASS_NAME_TAG = "compositejaxbclassname";
-    
+
     /** Used to serialize/deserialize the COBOL source code. */
     public static final String COBOL_SOURCE_TAG = "cobolsource";
 
@@ -145,29 +141,29 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
         super();
     }
 
-	/*
-	 * ------------------------------------------------------------------------
-	 * Bean properties section
-	 * ------------------------------------------------------------------------
-	 */
+    /*
+     * ------------------------------------------------------------------------
+     * Bean properties section
+     * ------------------------------------------------------------------------
+     */
 
-	/**
-	 * @return the local copy of the z/OS file
-	 */
-	public String getFilename() {
-		return _filename;
-	}
+    /**
+     * @return the local copy of the z/OS file
+     */
+    public String getFilename() {
+        return _filename;
+    }
 
-	/**
-	 * @param filename
-	 *            the local copy of the z/OS file to set
-	 */
-	public void setFilename(String filename) {
-		_filename = filename;
-	}
+    /**
+     * @param filename the local copy of the z/OS file to set
+     */
+    public void setFilename(String filename) {
+        _filename = filename;
+    }
 
     /**
      * Are the z/OS file records variable length
+     * 
      * @return true if the z/OS file records are fixed length
      */
     public boolean isVariableLength() {
@@ -176,6 +172,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /**
      * Are the z/OS file records variable length
+     * 
      * @param isFixedRecord true if the z/OS file records are fixed length
      */
     public void setIsVariableLength(boolean isFixedRecord) {
@@ -184,6 +181,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /**
      * Does the z/OS file records start with an RDW?.
+     * 
      * @return true if z/OS file records start with a record descriptor word
      */
     public boolean hasRecordDescriptorWord() {
@@ -194,7 +192,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
      * Does the z/OS file records start with an RDW?.
      * 
      * @param _hasRecordDescriptorWord true if z/OS file records start with a
-     *            record descriptor word
+     *        record descriptor word
      */
     public void setHasRecordDescriptorWord(boolean hasRecordDescriptorWord) {
         _hasRecordDescriptorWord = hasRecordDescriptorWord;
@@ -202,6 +200,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /**
      * The mainframe character set
+     * 
      * @return the mainframe character set
      */
     public String getHostCharset() {
@@ -210,6 +209,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /**
      * The mainframe character set.
+     * 
      * @param hostCharset The mainframe character set
      */
     public void setHostCharset(String hostCharset) {
@@ -231,8 +231,8 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
     }
 
     /**
-     * @return the COBOL-annotated JAXB class name and containing jar file name used by
-     * Transformer
+     * @return the COBOL-annotated JAXB class name and containing jar file name
+     *         used by Transformer
      */
     public String getCompositeJaxbClassName() {
         return _compositeJaxbClassName;
@@ -240,7 +240,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /**
      * @param compositeJaxbClassName the COBOL-annotated JAXB class name and
-     *            containing jar file name used by Transformer to set
+     *        containing jar file name used by Transformer to set
      */
     public void setCompositeJaxbClassName(String compositeJaxbClassName) {
         _compositeJaxbClassName = compositeJaxbClassName;
@@ -254,7 +254,8 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
     }
 
     /**
-     * @param cobolSource the COBOL-annotated JAXB qualified class name used by Transformer to set
+     * @param cobolSource the COBOL-annotated JAXB qualified class name used by
+     *        Transformer to set
      */
     public void setCobolSource(String cobolSource) {
         _cobolSource = cobolSource;
@@ -288,38 +289,37 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
         this._cobolFilePath = cobolFilePath;
     }
 
-	/**
-	 * @return the inputFields
-	 */
-	public CobolFileInputField[] getInputFields() {
-		return _inputFields;
-	}
+    /**
+     * @return the inputFields
+     */
+    public CobolFileInputField[] getInputFields() {
+        return _inputFields;
+    }
 
-	/**
-	 * @param inputFields
-	 *            the inputFields to set
-	 */
-	public void setInputFields(CobolFileInputField[] inputFields) {
-		_inputFields = inputFields;
-	}
+    /**
+     * @param inputFields the inputFields to set
+     */
+    public void setInputFields(CobolFileInputField[] inputFields) {
+        _inputFields = inputFields;
+    }
 
-	/*
-	 * ------------------------------------------------------------------------
-	 * Initial bean properties values
-	 * ------------------------------------------------------------------------
-	 */
-	public void setDefault() {
-		_inputFields = new CobolFileInputField[0];
-		_hostCharset = CobolToPdi.getDefaultHostCharset();
-		_isFromCobolSource = true;
-		_cobolCharset = Charset.defaultCharset().name();
-	}
+    /*
+     * ------------------------------------------------------------------------
+     * Initial bean properties values
+     * ------------------------------------------------------------------------
+     */
+    public void setDefault() {
+        _inputFields = new CobolFileInputField[0];
+        _hostCharset = CobolToPdi.getDefaultHostCharset();
+        _isFromCobolSource = true;
+        _cobolCharset = Charset.defaultCharset().name();
+    }
 
-	/*
-	 * ------------------------------------------------------------------------
-	 * XML Serialization section
-	 * ------------------------------------------------------------------------
-	 */
+    /*
+     * ------------------------------------------------------------------------
+     * XML Serialization section
+     * ------------------------------------------------------------------------
+     */
 
     /** {@inheritDoc} */
     public String getXML() throws KettleValueException {
@@ -355,12 +355,13 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
         retval.append("    </fields>").append(Const.CR);
         return retval.toString();
     }
-	
+
     /**
      * Add a formatted XML element.
+     * 
      * @param retval the target XML string
      * @param tagName the XML tag name
-     * @param value the element value 
+     * @param value the element value
      */
     protected void addTagValue(StringBuffer retval, String tagName, int value) {
         retval.append("        ")
@@ -402,8 +403,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
      * @throws KettleValueException if byte array conversion fails
      */
     protected void addTagValue(StringBuffer retval, String tagName,
-            String value, String charset)
-            throws KettleValueException {
+            String value, String charset) throws KettleValueException {
         try {
             if (value == null || value.length() == 0) {
                 addTagValue(retval, tagName, value);
@@ -418,40 +418,35 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
     }
 
     /**
-	 * Load the values for this step from an XML Node
-	 * 
-	 * @param stepnode
-	 *            the Node to get the info from
-	 * @param databases
-	 *            The available list of databases to reference to
-	 * @param counters
-	 *            Counters to reference.
-	 * @throws KettleXMLException
-	 *             When an unexpected XML error occurred. (malformed etc.)
-	 */
-    public void loadXML(Node stepnode, List < DatabaseMeta > databases,
-            Map < String, Counter > counters) throws KettleXMLException {
+     * Load the values for this step from an XML Node
+     * 
+     * @param stepnode the Node to get the info from
+     * @param databases The available list of databases to reference to
+     * @param counters Counters to reference.
+     * @throws KettleXMLException When an unexpected XML error occurred.
+     *         (malformed etc.)
+     */
+    public void loadXML(Node stepnode, List<DatabaseMeta> databases,
+            Map<String, Counter> counters) throws KettleXMLException {
 
         try {
-            _filename = getTagString(stepnode,
-                    FILE_NAME_TAG, null);
-            _isVariableLength = getTagBoolean(stepnode,
-                    IS_VARIABLE_LENGTH_TAG, false);
+            _filename = getTagString(stepnode, FILE_NAME_TAG, null);
+            _isVariableLength = getTagBoolean(stepnode, IS_VARIABLE_LENGTH_TAG,
+                    false);
             _hasRecordDescriptorWord = getTagBoolean(stepnode,
                     HAS_RECORD_DESCRIPTOR_WORD_TAG, false);
-            _hostCharset = getTagString(stepnode,
-                    HOST_CHARSET_TAG, CobolToPdi.getDefaultHostCharset());
+            _hostCharset = getTagString(stepnode, HOST_CHARSET_TAG,
+                    CobolToPdi.getDefaultHostCharset());
 
-            _isFromCobolSource = getTagBoolean(stepnode,
-                    IS_FROM_COBOL_SOURCE, true);
+            _isFromCobolSource = getTagBoolean(stepnode, IS_FROM_COBOL_SOURCE,
+                    true);
             _compositeJaxbClassName = getTagString(stepnode,
                     COMPOSITE_JAXB_CLASS_NAME_TAG, null);
-            _cobolCharset = getTagString(stepnode,
-                    COBOL_CHARSET_TAG, Charset.defaultCharset().name());
-            _cobolSource = getTagString(stepnode,
-                    COBOL_SOURCE_TAG, _cobolCharset, null);
-            _cobolFilePath = getTagString(stepnode,
-                    COBOL_FILE_PATH_TAG, null);
+            _cobolCharset = getTagString(stepnode, COBOL_CHARSET_TAG, Charset
+                    .defaultCharset().name());
+            _cobolSource = getTagString(stepnode, COBOL_SOURCE_TAG,
+                    _cobolCharset, null);
+            _cobolFilePath = getTagString(stepnode, COBOL_FILE_PATH_TAG, null);
 
             Node fields = XMLHandler.getSubNode(stepnode, "fields");
             int nFields = XMLHandler.countNodes(fields, "field");
@@ -462,25 +457,24 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
                 Node fnode = XMLHandler.getSubNodeByNr(fields, "field", i);
 
-                _inputFields[i].setName(getTagString(fnode,
-                        FIELD_NAME_TAG, null));
+                _inputFields[i].setName(getTagString(fnode, FIELD_NAME_TAG,
+                        null));
                 _inputFields[i]
                         .setType(ValueMeta.getType(getTagString(
                                 fnode,
                                 FIELD_TYPE_TAG,
                                 ValueMeta
                                         .getTypeDesc(ValueMetaInterface.TYPE_STRING))));
-                _inputFields[i].setLength(getTagInt(fnode,
-                        FIELD_LENGTH_TAG, -1));
+                _inputFields[i]
+                        .setLength(getTagInt(fnode, FIELD_LENGTH_TAG, -1));
                 _inputFields[i].setPrecision(getTagInt(fnode,
                         FIELD_PRECISION_TAG, 0));
                 _inputFields[i]
-                        .setTrimType(ValueMeta
-                                .getTrimTypeByCode(getTagString(
-                                        fnode,
-                                        FIELD_TRIM_TYPE_TAG,
-                                        ValueMeta
-                                                .getTrimTypeCode(ValueMetaInterface.TRIM_TYPE_NONE))));
+                        .setTrimType(ValueMeta.getTrimTypeByCode(getTagString(
+                                fnode,
+                                FIELD_TRIM_TYPE_TAG,
+                                ValueMeta
+                                        .getTrimTypeCode(ValueMetaInterface.TRIM_TYPE_NONE))));
                 _inputFields[i].setRedefined(getTagBoolean(fnode,
                         FIELD_REDEFINED_TAG, false));
             }
@@ -491,22 +485,23 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
         }
 
     }
-	
-	/**
-	 * Return an XML element value.
-	 * @param node the DOM node
-	 * @param tagName the element name
-	 * @param defaultValue the default value if element not found
-	 * @return the element value (defaultValue if not found)
-	 */
-	protected String getTagString(Node node, String tagName, String defaultValue) {
+
+    /**
+     * Return an XML element value.
+     * 
+     * @param node the DOM node
+     * @param tagName the element name
+     * @param defaultValue the default value if element not found
+     * @return the element value (defaultValue if not found)
+     */
+    protected String getTagString(Node node, String tagName, String defaultValue) {
         String strValue = XMLHandler.getTagValue(node, tagName);
         if (strValue == null) {
             return defaultValue;
         } else {
             return strValue;
         }
-	}
+    }
 
     /**
      * Return an XML element value.
@@ -517,10 +512,10 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
      * @param defaultValue the default value if element not found
      * @return the element value (defaultValue if not found)
      * @throws KettleValueException if conversions from XML encoding to string
-     *             fails
+     *         fails
      */
-    protected String getTagString(Node node, String tagName, String charset, String defaultValue)
-            throws KettleValueException {
+    protected String getTagString(Node node, String tagName, String charset,
+            String defaultValue) throws KettleValueException {
         try {
             String strValue = XMLHandler.getTagValue(node, tagName);
             if (strValue == null) {
@@ -538,12 +533,14 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /**
      * Return an XML element value.
+     * 
      * @param node the DOM node
      * @param tagName the element name
      * @param defaultValue the default value if element not found
      * @return the element value (defaultValue if not found)
      */
-    protected boolean getTagBoolean(Node node, String tagName, boolean defaultValue) {
+    protected boolean getTagBoolean(Node node, String tagName,
+            boolean defaultValue) {
         String strValue = XMLHandler.getTagValue(node, tagName);
         if (strValue == null) {
             return defaultValue;
@@ -554,6 +551,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /**
      * Return an XML element value.
+     * 
      * @param node the DOM node
      * @param tagName the element name
      * @return the element value (defaultValue if not found)
@@ -567,45 +565,44 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
         }
     }
 
-	/*
-	 * ------------------------------------------------------------------------
-	 * Repository Serialization section
-	 * ------------------------------------------------------------------------
-	 */
+    /*
+     * ------------------------------------------------------------------------
+     * Repository Serialization section
+     * ------------------------------------------------------------------------
+     */
 
-	public void readRep(Repository rep, ObjectId id_step,
-			List<DatabaseMeta> databases, Map<String, Counter> counters)
-			throws KettleException {
-		try {
-            _filename = rep.getStepAttributeString(id_step,
-                    FILE_NAME_TAG);
+    public void readRep(Repository rep, ObjectId id_step,
+            List<DatabaseMeta> databases, Map<String, Counter> counters)
+            throws KettleException {
+        try {
+            _filename = rep.getStepAttributeString(id_step, FILE_NAME_TAG);
             _isVariableLength = rep.getStepAttributeBoolean(id_step,
                     IS_VARIABLE_LENGTH_TAG);
             _hasRecordDescriptorWord = rep.getStepAttributeBoolean(id_step,
                     HAS_RECORD_DESCRIPTOR_WORD_TAG);
-            _hostCharset = rep.getStepAttributeString(id_step,
-                    HOST_CHARSET_TAG);
+            _hostCharset = rep
+                    .getStepAttributeString(id_step, HOST_CHARSET_TAG);
 
             _isFromCobolSource = rep.getStepAttributeBoolean(id_step,
                     IS_FROM_COBOL_SOURCE);
             _compositeJaxbClassName = rep.getStepAttributeString(id_step,
                     COMPOSITE_JAXB_CLASS_NAME_TAG);
-            _cobolSource = rep.getStepAttributeString(id_step,
-                    COBOL_SOURCE_TAG);
+            _cobolSource = rep
+                    .getStepAttributeString(id_step, COBOL_SOURCE_TAG);
             _cobolCharset = rep.getStepAttributeString(id_step,
                     COBOL_CHARSET_TAG);
             _cobolFilePath = rep.getStepAttributeString(id_step,
                     COBOL_FILE_PATH_TAG);
-            
-			int nFields = rep.countNrStepAttributes(id_step,
-			        "field_" + FIELD_NAME_TAG);
-			_inputFields = new CobolFileInputField[nFields];
+
+            int nFields = rep.countNrStepAttributes(id_step, "field_"
+                    + FIELD_NAME_TAG);
+            _inputFields = new CobolFileInputField[nFields];
 
             for (int i = 0; i < nFields; i++) {
                 _inputFields[i] = new CobolFileInputField();
 
-                _inputFields[i].setName(rep.getStepAttributeString(
-                        id_step, i, "field_" + FIELD_NAME_TAG));
+                _inputFields[i].setName(rep.getStepAttributeString(id_step, i,
+                        "field_" + FIELD_NAME_TAG));
                 _inputFields[i].setType(ValueMeta.getType(rep
                         .getStepAttributeString(id_step, i, "field_"
                                 + FIELD_TYPE_TAG)));
@@ -613,122 +610,122 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
                         id_step, i, "field_" + FIELD_LENGTH_TAG));
                 _inputFields[i].setPrecision((int) rep.getStepAttributeInteger(
                         id_step, i, "field_" + FIELD_PRECISION_TAG));
-                _inputFields[i]
-                        .setTrimType(ValueMeta.getTrimTypeByCode(rep
-                                .getStepAttributeString(id_step, i,
-                                        "field_" + FIELD_TRIM_TYPE_TAG)));
+                _inputFields[i].setTrimType(ValueMeta.getTrimTypeByCode(rep
+                        .getStepAttributeString(id_step, i, "field_"
+                                + FIELD_TRIM_TYPE_TAG)));
                 _inputFields[i].setRedefined(rep.getStepAttributeBoolean(
                         id_step, i, "field_" + FIELD_REDEFINED_TAG));
             }
-		} catch (Exception e) {
-			throw new KettleException(getI18N(
-			        "ZosFileInputMeta.RepPersistence.FailedToLoadStepInfo"),
-					e);
-		}
-	}
+        } catch (Exception e) {
+            throw new KettleException(
+                    getI18N("ZosFileInputMeta.RepPersistence.FailedToLoadStepInfo"),
+                    e);
+        }
+    }
 
-	public void saveRep(Repository rep, ObjectId id_transformation,
-			ObjectId id_step) throws KettleException {
-		try {
-            rep.saveStepAttribute(id_transformation, id_step,
-                    FILE_NAME_TAG, _filename);
+    public void saveRep(Repository rep, ObjectId id_transformation,
+            ObjectId id_step) throws KettleException {
+        try {
+            rep.saveStepAttribute(id_transformation, id_step, FILE_NAME_TAG,
+                    _filename);
             rep.saveStepAttribute(id_transformation, id_step,
                     IS_VARIABLE_LENGTH_TAG, _isVariableLength);
             rep.saveStepAttribute(id_transformation, id_step,
                     HAS_RECORD_DESCRIPTOR_WORD_TAG, _hasRecordDescriptorWord);
-            rep.saveStepAttribute(id_transformation, id_step,
-                    HOST_CHARSET_TAG, _hostCharset);
+            rep.saveStepAttribute(id_transformation, id_step, HOST_CHARSET_TAG,
+                    _hostCharset);
 
             rep.saveStepAttribute(id_transformation, id_step,
                     IS_FROM_COBOL_SOURCE, _isFromCobolSource);
             rep.saveStepAttribute(id_transformation, id_step,
                     COMPOSITE_JAXB_CLASS_NAME_TAG, _compositeJaxbClassName);
-            rep.saveStepAttribute(id_transformation, id_step,
-                    COBOL_SOURCE_TAG, _cobolSource);
+            rep.saveStepAttribute(id_transformation, id_step, COBOL_SOURCE_TAG,
+                    _cobolSource);
             rep.saveStepAttribute(id_transformation, id_step,
                     COBOL_CHARSET_TAG, _cobolCharset);
             rep.saveStepAttribute(id_transformation, id_step,
                     COBOL_FILE_PATH_TAG, _cobolFilePath);
 
-			for (int i = 0; i < _inputFields.length; i++) {
-				CobolFileInputField field = _inputFields[i];
+            for (int i = 0; i < _inputFields.length; i++) {
+                CobolFileInputField field = _inputFields[i];
 
-				rep.saveStepAttribute(id_transformation, id_step, i,
-				        "field_" + FIELD_NAME_TAG, field.getName());
-				rep.saveStepAttribute(id_transformation, id_step, i,
-				        "field_" + FIELD_TYPE_TAG, ValueMeta.getTypeDesc(field.getType()));
-				rep.saveStepAttribute(id_transformation, id_step, i,
-				        "field_" + FIELD_LENGTH_TAG, field.getLength());
-				rep.saveStepAttribute(id_transformation, id_step, i,
-				        "field_" + FIELD_PRECISION_TAG, field.getPrecision());
-				rep.saveStepAttribute(id_transformation, id_step, i,
-				        "field_" + FIELD_TRIM_TYPE_TAG, ValueMeta.getTrimTypeCode(field
-								.getTrimType()));
-                rep.saveStepAttribute(id_transformation, id_step, i,
-                        "field_" + FIELD_REDEFINED_TAG, field.isRedefined());
-			}
-		} catch (Exception e) {
-			throw new KettleException(getI18N(
-			        "ZosFileInputMeta.RepPersistence.FailedToSaveStepInfo")
-					+ id_step, e);
-		}
-	}
+                rep.saveStepAttribute(id_transformation, id_step, i, "field_"
+                        + FIELD_NAME_TAG, field.getName());
+                rep.saveStepAttribute(id_transformation, id_step, i, "field_"
+                        + FIELD_TYPE_TAG,
+                        ValueMeta.getTypeDesc(field.getType()));
+                rep.saveStepAttribute(id_transformation, id_step, i, "field_"
+                        + FIELD_LENGTH_TAG, field.getLength());
+                rep.saveStepAttribute(id_transformation, id_step, i, "field_"
+                        + FIELD_PRECISION_TAG, field.getPrecision());
+                rep.saveStepAttribute(id_transformation, id_step, i, "field_"
+                        + FIELD_TRIM_TYPE_TAG,
+                        ValueMeta.getTrimTypeCode(field.getTrimType()));
+                rep.saveStepAttribute(id_transformation, id_step, i, "field_"
+                        + FIELD_REDEFINED_TAG, field.isRedefined());
+            }
+        } catch (Exception e) {
+            throw new KettleException(
+                    getI18N("ZosFileInputMeta.RepPersistence.FailedToSaveStepInfo")
+                            + id_step, e);
+        }
+    }
 
-	/*
-	 * ------------------------------------------------------------------------
-	 * Defines what gets sent. A row is a flat sequence of fields.
-	 * ------------------------------------------------------------------------
-	 */
+    /*
+     * ------------------------------------------------------------------------
+     * Defines what gets sent. A row is a flat sequence of fields.
+     * ------------------------------------------------------------------------
+     */
 
-	public void getFields(RowMetaInterface rowMeta, String origin,
-			RowMetaInterface[] info, StepMeta nextStep, VariableSpace space) {
+    public void getFields(RowMetaInterface rowMeta, String origin,
+            RowMetaInterface[] info, StepMeta nextStep, VariableSpace space) {
 
-		CobolToPdi.fieldsToRowMeta(_inputFields, origin, rowMeta);
-	}
+        CobolToPdi.fieldsToRowMeta(_inputFields, origin, rowMeta);
+    }
 
-	/*
-	 * ------------------------------------------------------------------------
-	 * Check sanity of step position in a transformation context.
-	 * ------------------------------------------------------------------------
-	 */
+    /*
+     * ------------------------------------------------------------------------
+     * Check sanity of step position in a transformation context.
+     * ------------------------------------------------------------------------
+     */
 
-	public void check(List<CheckResultInterface> remarks, TransMeta transmeta,
-			StepMeta stepMeta, RowMetaInterface prev, String input[],
-			String output[], RowMetaInterface info) {
-		CheckResult cr;
+    public void check(List<CheckResultInterface> remarks, TransMeta transmeta,
+            StepMeta stepMeta, RowMetaInterface prev, String input[],
+            String output[], RowMetaInterface info) {
+        CheckResult cr;
 
-		// See if we have input streams leading to this step!
-		if (input.length > 0) {
-			cr = new CheckResult(CheckResult.TYPE_RESULT_ERROR,
-			        getI18N("ZosFileInputMeta.CheckResult.StepReceivingData"),
-					stepMeta);
-			remarks.add(cr);
-		} else {
-			cr = new CheckResult(
-					CheckResult.TYPE_RESULT_OK,
-					getI18N("ZosFileInputMeta.CheckResult.NoInputReceivedFromOtherSteps"),
-					stepMeta);
-			remarks.add(cr);
-		}
+        // See if we have input streams leading to this step!
+        if (input.length > 0) {
+            cr = new CheckResult(CheckResult.TYPE_RESULT_ERROR,
+                    getI18N("ZosFileInputMeta.CheckResult.StepReceivingData"),
+                    stepMeta);
+            remarks.add(cr);
+        } else {
+            cr = new CheckResult(
+                    CheckResult.TYPE_RESULT_OK,
+                    getI18N("ZosFileInputMeta.CheckResult.NoInputReceivedFromOtherSteps"),
+                    stepMeta);
+            remarks.add(cr);
+        }
 
-	}
+    }
 
-	/*
-	 * ------------------------------------------------------------------------
-	 * Return associated Step implementation and StepData.
-	 * ------------------------------------------------------------------------
-	 */
+    /*
+     * ------------------------------------------------------------------------
+     * Return associated Step implementation and StepData.
+     * ------------------------------------------------------------------------
+     */
 
-	public StepInterface getStep(StepMeta stepMeta,
-			StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
-			Trans disp) {
-		return new ZosFileInput(stepMeta, stepDataInterface, cnr, transMeta,
-				disp);
-	}
+    public StepInterface getStep(StepMeta stepMeta,
+            StepDataInterface stepDataInterface, int cnr, TransMeta transMeta,
+            Trans disp) {
+        return new ZosFileInput(stepMeta, stepDataInterface, cnr, transMeta,
+                disp);
+    }
 
-	public StepDataInterface getStepData() {
-		return new ZosFileInputData();
-	}
+    public StepDataInterface getStepData() {
+        return new ZosFileInputData();
+    }
 
     /*
      * ------------------------------------------------------------------------
@@ -738,22 +735,23 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
     /**
      * Shortcut to I18N messages.
+     * 
      * @param key the message identifier
      * @param parameters parameters if any
      * @return the localized message
      */
-    public static String getI18N(final String key, final String...parameters) {
+    public static String getI18N(final String key, final String... parameters) {
         return BaseMessages.getString(PKG, key, parameters);
     }
 
     /*
-	 * ------------------------------------------------------------------------
-	 * Java object overrides.
-	 * ------------------------------------------------------------------------
-	 */
-	public Object clone() {
-		Object retval = super.clone();
-		return retval;
-	}
+     * ------------------------------------------------------------------------
+     * Java object overrides.
+     * ------------------------------------------------------------------------
+     */
+    public Object clone() {
+        Object retval = super.clone();
+        return retval;
+    }
 
 }
