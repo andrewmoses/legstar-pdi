@@ -1,190 +1,203 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.legsem.legstar</groupId>
-    <artifactId>legstar.pdi</artifactId>
-    <version>0.4-SNAPSHOT</version>
-    <relativePath>..</relativePath>
-  </parent>
-  <artifactId>legstar.pdi.zosfile</artifactId>
-  <version>0.4-SNAPSHOT</version>
-  <packaging>jar</packaging>
+    <parent>
+        <groupId>com.legsem.legstar</groupId>
+        <artifactId>legstar.pdi</artifactId>
+        <version>0.4-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
+    <artifactId>legstar.pdi.zosfile</artifactId>
+    <packaging>jar</packaging>
 
-  <name>legstar.pdi.zosfile</name>
-  <description>A PDI step plugin to read z/OS binary files</description>
-  <url>http://www.legsem.com/legstar/pdi</url>
+    <name>legstar.pdi.zosfile</name>
+    <description>A PDI step plugin to read z/OS binary files</description>
 
-  <dependencies>
-
-    <!-- PDI dependencies -->
-    <dependency>
-      <groupId>pentaho.kettle</groupId>
-      <artifactId>kettle-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>pentaho.kettle</groupId>
-      <artifactId>kettle-engine</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>pentaho.kettle</groupId>
-      <artifactId>kettle-db</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>pentaho.kettle</groupId>
-      <artifactId>kettle-ui-swt</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-vfs</groupId>
-      <artifactId>commons-vfs</artifactId>
-    </dependency>
-
-    <!-- Scannotation dependencies -->
-    <dependency>
-      <groupId>net.sf.scannotation</groupId>
-      <artifactId>scannotation</artifactId>
-    </dependency>
-
-    <!-- Eclipse dependencies -->
-    <dependency>
-      <groupId>org.eclipse.swt</groupId>
-      <artifactId>org.eclipse.swt.win32.win32.x86</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jface</groupId>
-      <artifactId>org.eclipse.jface</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.equinox</groupId>
-      <artifactId>org.eclipse.equinox.common</artifactId>
-    </dependency>
-
-    <!-- LegStar dependencies -->
-    <dependency>
-      <groupId>com.legsem.legstar</groupId>
-      <artifactId>legstar-coxbrt</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.legsem.legstar</groupId>
-      <artifactId>legstar-cob2trans</artifactId>
-    </dependency>
-
-    <!-- Apache commons IO  -->    
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-
-   <!-- 
-     TEST dependencies
-    -->
-    <dependency>
-      <groupId>pentaho.kettle</groupId>
-      <artifactId>kettle-test</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.legsem.legstar</groupId>
-      <artifactId>legstar-coxbgen-cases</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-
-  </dependencies>
+    <dependencies>
   
-  <build>
-
-    <!-- Kettle step XML is filtered -->
-    <resources>
-      <resource>
-        <directory>${basedir}/src/main/resources</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
+        <!-- PDI dependencies -->
+        <dependency>
+            <groupId>pentaho.kettle</groupId>
+            <artifactId>kettle-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pentaho.kettle</groupId>
+            <artifactId>kettle-engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pentaho.kettle</groupId>
+            <artifactId>kettle-db</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>pentaho.kettle</groupId>
+            <artifactId>kettle-ui-swt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-vfs</groupId>
+            <artifactId>commons-vfs</artifactId>
+        </dependency>
     
-    <plugins>
-
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-        
-          <!-- Deploy zip file locally for integration tests and to pdi.
-               We remove the dependency jars from the plugin itself because
-               they are already loaded by the launcher. If we leave them,
-               we get ClassCastExceptions because Kettle also loads these
-               classes with a new class loader and hence clashes with launcher.
-               But since we need these dependencies when we call the 
-               java compiler, we store them aside (hence the move).
-               
-               The last unzip deploys to a full copy of Kettle for
-               further testing.
-               
-           -->
-          <execution>
-            <id>integration-tests</id>
-            <phase>pre-integration-test</phase>
-            <configuration>
-              <tasks>
-                <property environment="env" />
-                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}/plugins" overwrite="true" />
-                <move todir="${project.build.directory}/plugins/compile">
-                  <fileset dir="${project.build.directory}/plugins/legstar.pdi.zosfile" includes="**/*.jar" />
-                </move>
-                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${env.KETTLE_DIR}/plugins" overwrite="true" />
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-
-        </executions>
-      </plugin>
-
-      <!-- Integration tests (runs classes xxxITCase) -->
-      <plugin>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>integration-test</id>
-            <goals>
-              <goal>integration-test</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>verify</id>
-            <goals>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- Create the distribution -->
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId> 
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-                <goal>attached</goal>
-            </goals>
-            <configuration>
-              <finalName>${project.artifactId}</finalName>
-              <descriptors>
-                <descriptor>assembly.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-    </plugins>
-
-  </build>
+        <!-- Scannotation dependencies -->
+        <dependency>
+            <groupId>net.sf.scannotation</groupId>
+            <artifactId>scannotation</artifactId>
+        </dependency>
+    
+        <!-- Eclipse dependencies -->
+        <dependency>
+            <groupId>org.eclipse.swt</groupId>
+            <artifactId>org.eclipse.swt.win32.win32.x86</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jface</groupId>
+            <artifactId>org.eclipse.jface</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.equinox</groupId>
+            <artifactId>org.eclipse.equinox.common</artifactId>
+        </dependency>
+    
+        <!-- LegStar dependencies -->
+        <dependency>
+            <groupId>com.legsem.legstar</groupId>
+            <artifactId>legstar-coxbrt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.legsem.legstar</groupId>
+            <artifactId>legstar-cob2trans</artifactId>
+        </dependency>
+    
+        <!-- Apache commons IO  -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+    
+       <!--
+         TEST dependencies
+        -->
+        <dependency>
+            <groupId>pentaho.kettle</groupId>
+            <artifactId>kettle-test</artifactId>
+        </dependency>
+    
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
   
+    </dependencies>
+
+    <build>
+  
+        <!-- Kettle step XML is filtered -->
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+  
+        <plugins>
+    
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <!-- 
+                       Dependencies are useful for ANT scripts classpath and distribution.
+                      -->
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                            <excludeGroupIds>org.codehaus.jackson</excludeGroupIds>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+        
+                    <!-- Deploy zip file locally for integration tests and to pdi.
+                         We remove the dependency jars from the plugin itself because
+                         they are already loaded by the launcher. If we leave them,
+                         we get ClassCastExceptions because Kettle also loads these
+                         classes with a new class loader and hence clashes with launcher.
+                         But since we need these dependencies when we call the
+                         java compiler, we store them aside (hence the move).
+          
+                         The last unzip deploys to a full copy of Kettle for
+                         further testing.
+          
+                     -->
+                    <execution>
+                        <id>integration-tests</id>
+                        <phase>pre-integration-test</phase>
+                        <configuration>
+                            <tasks>
+                                <property environment="env" />
+                                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}/plugins" overwrite="true" />
+                                <move todir="${project.build.directory}/plugins/compile">
+                                    <fileset dir="${project.build.directory}/plugins/legstar.pdi.zosfile" includes="**/*.jar" />
+                                </move>
+                                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${env.KETTLE_DIR}/plugins" overwrite="true" />
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+        
+                </executions>
+            </plugin>
+      
+            <!-- Integration tests (runs classes xxxITCase) -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>verify</id>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+      
+            <!-- Create the distribution -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attached</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.artifactId}</finalName>
+                            <descriptors>
+                                <descriptor>assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+    
+        </plugins>
+  
+    </build>
+
 </project>

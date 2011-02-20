@@ -17,7 +17,6 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 import com.legstar.coxb.host.HostData;
 import com.legstar.coxb.transform.HostTransformStatus;
 import com.legstar.coxb.util.BindingUtil;
-import com.legstar.test.coxb.LsfileaeCases;
 
 /**
  * Tests for CobolToPdi class.
@@ -332,7 +331,12 @@ public class CobolToPdiTest extends TestCase {
 
     }
 
-    public void testComplexArrays() throws Exception {
+    /**
+     * Test complex array unmarshaling.
+     * 
+     * @throws Exception
+     */
+    public void testComplexArraysToOutputRowData() throws Exception {
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
         try {
             setContextClassLoader(getClass(), new File(

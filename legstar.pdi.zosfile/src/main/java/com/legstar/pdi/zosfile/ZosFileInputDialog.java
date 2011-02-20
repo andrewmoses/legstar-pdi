@@ -50,6 +50,8 @@ import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
+import org.pentaho.di.trans.step.BaseStepMeta;
+import org.pentaho.di.trans.step.StepDialogInterface;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
 import org.pentaho.di.ui.core.dialog.EnterTextDialog;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -59,29 +61,29 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
-import org.pentaho.di.trans.step.BaseStepMeta;
-import org.pentaho.di.trans.step.StepDialogInterface;
 
+import com.legstar.pdi.Cob2PdiFields;
 import com.legstar.pdi.CobolFileInputField;
 import com.legstar.pdi.CobolToFieldsProgressDialog;
 import com.legstar.pdi.CobolToPdi;
 
 /**
- * A PDI dialog to setup the z/OS File Input step.
- * TODO Add possibility of getting the file name from a previous step
- * TODO Add possibility to pass the file name to the next step (when it is received as a parameter)
- * TODO Add possibility to rename fields
+ * A PDI dialog to setup the z/OS File Input step. TODO Add possibility of
+ * getting the file name from a previous step TODO Add possibility to pass the
+ * file name to the next step (when it is received as a parameter) TODO Add
+ * possibility to rename fields
  */
-public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInterface {
+public class ZosFileInputDialog extends BaseStepDialog implements
+        StepDialogInterface {
 
-	/** For i18n purposes. */
-	private static Class<?> PKG = ZosFileInputMeta.class;
-	
-	/** The step meta data. */
-	private ZosFileInputMeta _inputMeta;
+    /** For i18n purposes. */
+    private static Class<?> PKG = ZosFileInputMeta.class;
+
+    /** The step meta data. */
+    private ZosFileInputMeta _inputMeta;
 
     /** The tab folder. */
-	private CTabFolder   wTabFolder;
+    private CTabFolder wTabFolder;
 
     /** File/Cobol/Fields tabs. */
     private CTabItem wFileTab, wCobolTab, wFieldsTab;
@@ -90,153 +92,155 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
     private Composite wFileComp, wCobolComp, wFieldsComp;
 
     /** The z/OS file name. */
-    private TextVar      wFilename;
+    private TextVar wFilename;
 
     /** Browse button to locate the z/OS file. */
-    private Button       wbbFilename;
-    
+    private Button wbbFilename;
+
     /** The host character set. */
-    private Combo        wHostCharset;
+    private Combo wHostCharset;
 
     /** A checkbox for variable length records. */
-    private Button       wcbIsVariableLength;
+    private Button wcbIsVariableLength;
 
     /** A checkbox in case records start with an RDW. */
-    private Button       wcbHasRecordDescriptorWord;
-    
+    private Button wcbHasRecordDescriptorWord;
+
     /** The COBOL source input button. */
-    private Button       wrbCobolSourceInput;
+    private Button wrbCobolSourceInput;
 
     /** The COBOL-annotated JAXB input button. */
-    private Button       wrbCobolJAXBInput;
-    
-    /** New Transformer widgets group.*/
-    private Composite    wNewTransformerComposite;
-    
-    /** Exsiting Transformer widgets group.*/
-    private Composite    wExistingTransformerComposite;
-    
+    private Button wrbCobolJAXBInput;
+
+    /** New Transformer widgets group. */
+    private Composite wNewTransformerComposite;
+
+    /** Exsiting Transformer widgets group. */
+    private Composite wExistingTransformerComposite;
+
     /** Browse button to locate the COBOL file. */
-    private Button       wbbCobolFile;
-    
+    private Button wbbCobolFile;
+
     /** The choice of available charater sets for COBOL files. */
-    private Combo        wCobolCharset;
-    
+    private Combo wCobolCharset;
+
     /**
      * When COBOL is imported from a file, we keep its location to help naming
      * artifacts package.
      */
-    private String       _cobolFilePath;
+    private String _cobolFilePath;
 
     /** The COBOL code describing the z/OS file records. */
-    private Text         wCobolSource;
-    
+    private Text wCobolSource;
+
     /** The COBOL-annotated JAXB classes combo box. */
-    private Combo        wCompositeJaxbClassNames;
+    private Combo wCompositeJaxbClassNames;
 
-    /** The z/OS file record fields that need to be extracted.*/
-    private TableView    wFields;
-    
+    /** The z/OS file record fields that need to be extracted. */
+    private TableView wFields;
+
     /** A simple ruler to help with COBOL instructions entry. */
-    private static final String COBOL_RULE_LABEL =
-        "0--------1---------2---------3---------4---------5---------6"
-        + "---------7--    ";
+    private static final String COBOL_RULE_LABEL = "0--------1---------2---------3---------4---------5---------6"
+            + "---------7--    ";
 
-	
     /**
      * Create an instance of the dialog.
+     * 
      * @param parent the parent SWT shell
      * @param stepMeta the step meta data
      * @param transMeta the transformation (we are part of) meta
      * @param stepname the step name
      */
-    public ZosFileInputDialog(Shell parent, Object stepMeta, TransMeta transMeta,
-            String stepname) {
+    public ZosFileInputDialog(Shell parent, Object stepMeta,
+            TransMeta transMeta, String stepname) {
         super(parent, (BaseStepMeta) stepMeta, transMeta, stepname);
         _inputMeta = (ZosFileInputMeta) stepMeta;
     }
 
-	/**
-	 * Assemble the dialog widgets and display.
-	 */
-	public String open() {
-		Shell parent = getParent();
-		Display display = parent.getDisplay();
+    /**
+     * Assemble the dialog widgets and display.
+     */
+    public String open() {
+        Shell parent = getParent();
+        Display display = parent.getDisplay();
 
-		shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN | SWT.MAX);
-		props.setLook(shell);
-		setShellImage(shell, _inputMeta);
+        shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN
+                | SWT.MAX);
+        props.setLook(shell);
+        setShellImage(shell, _inputMeta);
 
-		changed = _inputMeta.hasChanged();
+        changed = _inputMeta.hasChanged();
 
-		FormLayout formLayout = new FormLayout();
-		formLayout.marginWidth = Const.FORM_MARGIN;
-		formLayout.marginHeight = Const.FORM_MARGIN;
+        FormLayout formLayout = new FormLayout();
+        formLayout.marginWidth = Const.FORM_MARGIN;
+        formLayout.marginHeight = Const.FORM_MARGIN;
 
-		shell.setLayout(formLayout);
-		shell.setText(getI18N("ZosFileInputDialog.Shell.Title")); 
+        shell.setLayout(formLayout);
+        shell.setText(getI18N("ZosFileInputDialog.Shell.Title"));
 
-		int middle = props.getMiddlePct();
-		int margin = Const.MARGIN;
+        int middle = props.getMiddlePct();
+        int margin = Const.MARGIN;
 
-		// Add the step name
-		addStepName(middle, margin);
-		Control lastControl = wStepname;
-		
+        // Add the step name
+        addStepName(middle, margin);
+        Control lastControl = wStepname;
+
         // All other properties are in tab folders
-		addTabFolder(lastControl, middle, margin);
+        addTabFolder(lastControl, middle, margin);
         lastControl = wTabFolder;
-        
-		// Add OK, cancel, and preview buttons
-		addButtons(lastControl, margin);      
 
-		// Add listeners
-		addListeners();
-		
-		// Set the shell size
-		setSize();
+        // Add OK, cancel, and preview buttons
+        addButtons(lastControl, margin);
 
-		setDialogFromMetaData();
-		_inputMeta.setChanged(changed);
+        // Add listeners
+        addListeners();
 
-		shell.open();
-		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch())
-				display.sleep();
-		}
-		return stepname;
-	}
-	
-	/**
-	 * Add a step name widget.
-	 * @param middle percentage of the parent widget 
-	 * @param margin offset from that position
-	 */
-	protected void addStepName(final int middle, final int margin) {
-		// Step name line
-		wlStepname = new Label(shell, SWT.RIGHT);
-		wlStepname.setText(getI18N("System.Label.StepName")); 
-		props.setLook(wlStepname);
-		fdlStepname=new FormData();
-		fdlStepname.left = new FormAttachment(0, 0);
-		fdlStepname.right= new FormAttachment(middle, -margin);
-		fdlStepname.top  = new FormAttachment(0, margin);
-		wlStepname.setLayoutData(fdlStepname);
+        // Set the shell size
+        setSize();
 
-		wStepname = new Text(shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
-		wStepname.setText(stepname);
-		props.setLook(wStepname);
-		fdStepname=new FormData();
-		fdStepname.left = new FormAttachment(middle, 0);
-		fdStepname.top  = new FormAttachment(0, margin);
-		fdStepname.right= new FormAttachment(100, 0);
-		wStepname.setLayoutData(fdStepname);
-	}
-	
+        setDialogFromMetaData();
+        _inputMeta.setChanged(changed);
+
+        shell.open();
+        while (!shell.isDisposed()) {
+            if (!display.readAndDispatch())
+                display.sleep();
+        }
+        return stepname;
+    }
+
+    /**
+     * Add a step name widget.
+     * 
+     * @param middle percentage of the parent widget
+     * @param margin offset from that position
+     */
+    protected void addStepName(final int middle, final int margin) {
+        // Step name line
+        wlStepname = new Label(shell, SWT.RIGHT);
+        wlStepname.setText(getI18N("System.Label.StepName"));
+        props.setLook(wlStepname);
+        fdlStepname = new FormData();
+        fdlStepname.left = new FormAttachment(0, 0);
+        fdlStepname.right = new FormAttachment(middle, -margin);
+        fdlStepname.top = new FormAttachment(0, margin);
+        wlStepname.setLayoutData(fdlStepname);
+
+        wStepname = new Text(shell, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
+        wStepname.setText(stepname);
+        props.setLook(wStepname);
+        fdStepname = new FormData();
+        fdStepname.left = new FormAttachment(middle, 0);
+        fdStepname.top = new FormAttachment(0, margin);
+        fdStepname.right = new FormAttachment(100, 0);
+        wStepname.setLayoutData(fdStepname);
+    }
+
     /**
      * Add the tab folder and tab items.
+     * 
      * @param lastControl control to position from
-     * @param middle percentage of the parent widget 
+     * @param middle percentage of the parent widget
      * @param margin offset from that position
      */
     protected void addTabFolder(final Control lastControl, final int middle,
@@ -263,10 +267,11 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         fdTabFolder.bottom = new FormAttachment(100, -50);
         wTabFolder.setLayoutData(fdTabFolder);
     }
-	
+
     /**
      * The File tab contains properties related with the z/OS file.
-     * @param middle percentage of the parent widget 
+     * 
+     * @param middle percentage of the parent widget
      * @param margin offset from that position
      */
     protected void addFileTab(final int middle, final int margin) {
@@ -280,24 +285,24 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         fileLayout.marginWidth = 3;
         fileLayout.marginHeight = 3;
         wFileComp.setLayout(fileLayout);
-        
+
         // Add the File Location group
         Control last = addFileLocationGroup(wFileComp, middle, margin);
-        
+
         // Add the Record Format Group
         last = addRecordFormatGroup(wFileComp, last, middle, margin);
 
-        FormData fdFileComp=new FormData();
-        fdFileComp.left  = new FormAttachment(0, 0);
-        fdFileComp.top   = new FormAttachment(0, 0);
+        FormData fdFileComp = new FormData();
+        fdFileComp.left = new FormAttachment(0, 0);
+        fdFileComp.top = new FormAttachment(0, 0);
         fdFileComp.right = new FormAttachment(100, 0);
-        fdFileComp.bottom= new FormAttachment(100, 0);
+        fdFileComp.bottom = new FormAttachment(100, 0);
         wFileComp.setLayoutData(fdFileComp);
 
         wFileComp.layout();
         wFileTab.setControl(wFileComp);
     }
-    
+
     /**
      * Add File location group.
      * 
@@ -306,10 +311,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      * @param margin offset from that position
      * @return the new control
      */
-    protected Control addFileLocationGroup(
-            final Composite parent,
-            final int middle,
-            final int margin) {
+    protected Control addFileLocationGroup(final Composite parent,
+            final int middle, final int margin) {
 
         Group group = new Group(parent, SWT.SHADOW_ETCHED_IN);
         group.setText(BaseMessages.getString(PKG,
@@ -323,10 +326,10 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
         // Add the z/OS file name
         addFilename(group, middle, margin);
-        
-        //TODO add file name from previous step
 
-        FormData fdGroup= new FormData();
+        // TODO add file name from previous step
+
+        FormData fdGroup = new FormData();
         fdGroup.left = new FormAttachment(0, 0);
         fdGroup.right = new FormAttachment(100, 0);
         fdGroup.top = new FormAttachment(0, margin);
@@ -335,7 +338,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         return group;
 
     }
-    
+
     /**
      * Add the z/OS file name widget and associated browse button.
      * 
@@ -343,16 +346,13 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      * @param middle percentage of the parent widget
      * @param margin offset from that position
      */
-    protected Control addFilename(
-            final Composite parent,
-            final int middle,
+    protected Control addFilename(final Composite parent, final int middle,
             final int margin) {
 
         // The filename browse button
         wbbFilename = new Button(parent, SWT.PUSH | SWT.CENTER);
         props.setLook(wbbFilename);
-        wbbFilename
-                .setText(getI18N("System.Button.Browse"));
+        wbbFilename.setText(getI18N("System.Button.Browse"));
         wbbFilename
                 .setToolTipText(getI18N("System.Tooltip.BrowseForFileOrDirAndAdd"));
         FormData fdb = new FormData();
@@ -362,8 +362,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
         // The field itself...
         Label wlFilename = new Label(parent, SWT.RIGHT);
-        wlFilename.setText(getI18N(
-                "ZosFileInputDialog.Filename.Label"));
+        wlFilename.setText(getI18N("ZosFileInputDialog.Filename.Label"));
         props.setLook(wlFilename);
         FormData fdl = new FormData();
         fdl.top = new FormAttachment(0, margin);
@@ -378,10 +377,10 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         fd.left = new FormAttachment(middle, 0);
         fd.right = new FormAttachment(wbbFilename, -margin);
         wFilename.setLayoutData(fd);
-        
+
         return wFilename;
     }
-    
+
     /**
      * Add Record Format group.
      * 
@@ -390,11 +389,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      * @param margin offset from that position
      * @return the new control
      */
-    protected Control addRecordFormatGroup(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Control addRecordFormatGroup(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
 
         Group group = new Group(parent, SWT.SHADOW_ETCHED_IN);
         group.setText(BaseMessages.getString(PKG,
@@ -416,7 +412,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         // Add the host character set combo box
         last = addHostCharset(group, last, middle, margin);
 
-        FormData fdGroup= new FormData();
+        FormData fdGroup = new FormData();
         fdGroup.left = new FormAttachment(0, 0);
         fdGroup.right = new FormAttachment(100, 0);
         fdGroup.top = new FormAttachment(lastControl, margin);
@@ -425,23 +421,20 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         return group;
 
     }
-    
+
     /**
      * Add the z/OS character set.
+     * 
      * @param parent the parent composite
      * @param lastControl the last control to position from
-     * @param middle percentage of the parent widget 
+     * @param middle percentage of the parent widget
      * @param margin offset from that position
      * @return the new control
      */
-    protected Control addHostCharset(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Control addHostCharset(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
         Label wlHostCharset = new Label(parent, SWT.RIGHT);
-        wlHostCharset.setText(getI18N(
-                "ZosFileInputDialog.HostCharset.Label"));
+        wlHostCharset.setText(getI18N("ZosFileInputDialog.HostCharset.Label"));
         props.setLook(wlHostCharset);
         FormData fdl = new FormData();
         fdl.left = new FormAttachment(0, 0);
@@ -450,48 +443,46 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         wlHostCharset.setLayoutData(fdl);
 
         wHostCharset = new Combo(parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER);
-        wHostCharset.setToolTipText(getI18N(
-                "ZosFileInputDialog.HostCharset.Tooltip"));
+        wHostCharset
+                .setToolTipText(getI18N("ZosFileInputDialog.HostCharset.Tooltip"));
         wHostCharset.setItems(availableCharsets());
         props.setLook(wHostCharset);
-        
+
         FormData fd = new FormData();
         fd.left = new FormAttachment(middle, 0);
         fd.top = new FormAttachment(lastControl, margin);
         fd.right = new FormAttachment(100, 0);
         wHostCharset.setLayoutData(fd);
-        
+
         return wHostCharset;
 
     }
-    
+
     /**
      * Retrieve all available character sets on this VM.
+     * 
      * @return an array of available character sets
      */
     protected String[] availableCharsets() {
-        SortedMap < String, Charset > charsets = Charset.availableCharsets();
-        Set < String > names = charsets.keySet();
+        SortedMap<String, Charset> charsets = Charset.availableCharsets();
+        Set<String> names = charsets.keySet();
         return names.toArray(new String[names.size()]);
     }
-    
+
     /**
      * Add a check box for variable length records.
      * 
      * @param parent the parent composite
      * @param lastControl the last control to position from
-     * @param middle percentage of the parent widget 
+     * @param middle percentage of the parent widget
      * @param margin offset from that position
      * @return the new control
      */
-    protected Control addIsVariableLength(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Control addIsVariableLength(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
         Label wlIsVariableLength = new Label(parent, SWT.RIGHT);
-        wlIsVariableLength.setText(getI18N(
-                "ZosFileInputDialog.IsVariableLength.Label"));
+        wlIsVariableLength
+                .setText(getI18N("ZosFileInputDialog.IsVariableLength.Label"));
         props.setLook(wlIsVariableLength);
         FormData fdl = new FormData();
         fdl.top = new FormAttachment(lastControl, margin);
@@ -499,35 +490,32 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         fdl.right = new FormAttachment(middle, -margin);
         wlIsVariableLength.setLayoutData(fdl);
         wcbIsVariableLength = new Button(parent, SWT.CHECK);
-        wcbIsVariableLength.setToolTipText(getI18N(
-                "ZosFileInputDialog.Tooltip.IsVariableLength"));
+        wcbIsVariableLength
+                .setToolTipText(getI18N("ZosFileInputDialog.Tooltip.IsVariableLength"));
         props.setLook(wcbIsVariableLength);
         FormData fdb = new FormData();
         fdb.top = new FormAttachment(lastControl, margin);
         fdb.left = new FormAttachment(middle, 0);
         fdb.right = new FormAttachment(100, 0);
         wcbIsVariableLength.setLayoutData(fdb);
-        
+
         return wcbIsVariableLength;
     }
-    
+
     /**
      * Add a check box for records starting with an RDW.
      * 
      * @param parent the parent composite
      * @param lastControl the last control to position from
-     * @param middle percentage of the parent widget 
+     * @param middle percentage of the parent widget
      * @param margin offset from that position
      * @return the new control
      */
-    protected Control addHasRecordDescriptorWord(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Control addHasRecordDescriptorWord(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
         Label wlHasRecordDescriptorWord = new Label(parent, SWT.RIGHT);
-        wlHasRecordDescriptorWord.setText(getI18N(
-                "ZosFileInputDialog.HasRecordDescriptorWord.Label"));
+        wlHasRecordDescriptorWord
+                .setText(getI18N("ZosFileInputDialog.HasRecordDescriptorWord.Label"));
         props.setLook(wlHasRecordDescriptorWord);
         FormData fdl = new FormData();
         fdl.top = new FormAttachment(lastControl, margin);
@@ -535,18 +523,18 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         fdl.right = new FormAttachment(middle, -margin);
         wlHasRecordDescriptorWord.setLayoutData(fdl);
         wcbHasRecordDescriptorWord = new Button(parent, SWT.CHECK);
-        wcbHasRecordDescriptorWord.setToolTipText(getI18N(
-                "ZosFileInputDialog.Tooltip.HasRecordDescriptorWord"));
+        wcbHasRecordDescriptorWord
+                .setToolTipText(getI18N("ZosFileInputDialog.Tooltip.HasRecordDescriptorWord"));
         props.setLook(wcbHasRecordDescriptorWord);
         FormData fdb = new FormData();
         fdb.top = new FormAttachment(lastControl, margin);
         fdb.left = new FormAttachment(middle, 0);
         fdb.right = new FormAttachment(100, 0);
         wcbHasRecordDescriptorWord.setLayoutData(fdb);
-        
+
         return wcbHasRecordDescriptorWord;
     }
-    
+
     /**
      * The COBOL tab contains properties related with the COBOL structure
      * describing the file records.
@@ -556,8 +544,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      */
     protected void addCobolTab(final int middle, final int margin) {
         wCobolTab = new CTabItem(wTabFolder, SWT.NONE);
-        wCobolTab.setText(getI18N(
-                "ZosFileInputDialog.Cobol.Tab"));
+        wCobolTab.setText(getI18N("ZosFileInputDialog.Cobol.Tab"));
 
         wCobolComp = new Composite(wTabFolder, SWT.NONE);
         props.setLook(wCobolComp);
@@ -591,19 +578,17 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
     }
 
     /**
-     * Add 2 radio buttons to select between creating a new transformer from COBOL code
-     * and reusing an existing one.
+     * Add 2 radio buttons to select between creating a new transformer from
+     * COBOL code and reusing an existing one.
+     * 
      * @param parent the parent composite
      * @param lastControl the last control to attach to
      * @param middle percentage of the parent widget
      * @param margin offset from that position
      * @return the composite containing both radio buttons
      */
-    protected Control addSelectInputType(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Control addSelectInputType(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
 
         Composite inputTypes = new Composite(parent, SWT.NULL);
         inputTypes.setLayout(new RowLayout());
@@ -613,8 +598,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         props.setLook(wrbCobolSourceInput);
         wrbCobolSourceInput
                 .setText(getI18N("ZosFileInputDialog.CobolSourceInput.Label"));
-        wrbCobolSourceInput.setToolTipText(getI18N(
-                "ZosFileInputDialog.Tooltip.CobolSourceInput"));
+        wrbCobolSourceInput
+                .setToolTipText(getI18N("ZosFileInputDialog.Tooltip.CobolSourceInput"));
         wrbCobolSourceInput.setSelection(true);
 
         // The COBOL-annotated JAXB input button
@@ -622,8 +607,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         props.setLook(wrbCobolJAXBInput);
         wrbCobolJAXBInput
                 .setText(getI18N("ZosFileInputDialog.CobolJAXBInput.Label"));
-        wrbCobolJAXBInput.setToolTipText(getI18N(
-                "ZosFileInputDialog.Tooltip.CobolJAXBInput"));
+        wrbCobolJAXBInput
+                .setToolTipText(getI18N("ZosFileInputDialog.Tooltip.CobolJAXBInput"));
         wrbCobolJAXBInput.setSelection(false);
 
         FormData fd = new FormData();
@@ -640,17 +625,15 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
     /**
      * Creates widgets to create a new Transformer from COBOL source.
+     * 
      * @param parent the parent composite
      * @param lastControl the last control to attach to
      * @param middle percentage of the parent widget
      * @param margin offset from that position
      * @return the group containing the widgets
      */
-    protected Composite addNewTransformerComposite(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Composite addNewTransformerComposite(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
 
         Composite composite = new Composite(parent, SWT.NULL);
 
@@ -662,13 +645,12 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
         // Add the button to select COBOL file
         Control last = addSelectCobolFileButton(composite, middle, margin);
-        
+
         // Add the combo to select COBOL character set
         last = addCharacterSetCombo(composite, last, middle, margin);
-        
+
         // Add the COBOL code edit box
         last = addCobolEditBox(composite, last, middle, margin);
-
 
         FormData fd = new FormData();
         if (lastControl == null) {
@@ -678,25 +660,23 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         }
         fd.left = new FormAttachment(0, margin);
         fd.right = new FormAttachment(100, 0);
-        fd.bottom= new FormAttachment(100, 0);
+        fd.bottom = new FormAttachment(100, 0);
         composite.setLayoutData(fd);
 
         return composite;
     }
 
     /**
-     * This button will popup the resource selection dialog in order
-     * to pick up COBOL code from the file system.
+     * This button will popup the resource selection dialog in order to pick up
+     * COBOL code from the file system.
      * 
      * @param parent the parent container
      * @param middle percentage of the parent widget
      * @param margin offset from that position
      * @return the new control
      */
-    protected Control addSelectCobolFileButton(
-            final Composite parent,
-            final int middle,
-            final int margin) {
+    protected Control addSelectCobolFileButton(final Composite parent,
+            final int middle, final int margin) {
 
         Display display = parent.getDisplay();
 
@@ -705,8 +685,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         props.setLook(wbbCobolFile);
         wbbCobolFile
                 .setText(getI18N("ZosFileInputDialog.SelectCobolFile.Label"));
-        wbbCobolFile.setToolTipText(getI18N(
-                "ZosFileInputDialog.Tooltip.SelectCobolFile"));
+        wbbCobolFile
+                .setToolTipText(getI18N("ZosFileInputDialog.Tooltip.SelectCobolFile"));
         ImageData data = new ImageData(getClass().getResourceAsStream(
                 "/import_cbl.gif"));
         Image image = new Image(display, data);
@@ -720,10 +700,10 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         return wbbCobolFile;
 
     }
-    
+
     /**
-     * This combo box lists the available character sets from which user
-     * can pick the one that encodes the COBOL file.
+     * This combo box lists the available character sets from which user can
+     * pick the one that encodes the COBOL file.
      * 
      * @param parent the parent container
      * @param lastControl the last control to position from
@@ -731,29 +711,27 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      * @param margin offset from that position
      * @return the new control
      */
-    protected Control addCharacterSetCombo(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Control addCharacterSetCombo(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
 
-        wCobolCharset = new Combo(parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER | SWT.READ_ONLY);
-        wCobolCharset.setToolTipText(getI18N(
-                "ZosFileInputDialog.CobolCharset.Tooltip"));
+        wCobolCharset = new Combo(parent, SWT.SINGLE | SWT.LEFT | SWT.BORDER
+                | SWT.READ_ONLY);
+        wCobolCharset
+                .setToolTipText(getI18N("ZosFileInputDialog.CobolCharset.Tooltip"));
         wCobolCharset.setItems(availableCharsets());
         props.setLook(wCobolCharset);
-        
+
         FormData fd = new FormData();
         fd.top = new FormAttachment(0, margin);
         fd.right = new FormAttachment(100, 0);
         wCobolCharset.setLayoutData(fd);
-        
+
         Label wlCobolCharset = new Label(parent, SWT.RIGHT);
-        wlCobolCharset.setText(getI18N(
-                "ZosFileInputDialog.CobolCharset.Label"));
+        wlCobolCharset
+                .setText(getI18N("ZosFileInputDialog.CobolCharset.Label"));
         props.setLook(wlCobolCharset);
         FormData fdl = new FormData();
-        //fdl.left = new FormAttachment(middle, 0);
+        // fdl.left = new FormAttachment(middle, 0);
         fdl.top = new FormAttachment(0, margin);
         fdl.right = new FormAttachment(wCobolCharset, -margin);
         wlCobolCharset.setLayoutData(fdl);
@@ -761,7 +739,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         return wCobolCharset;
 
     }
-    
+
     /**
      * Add an edit box where users can copy/paste COBOL code.
      * 
@@ -771,11 +749,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      * @param margin offset from that position
      * @return the new control
      */
-    protected Control addCobolEditBox(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Control addCobolEditBox(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
 
         // Fixed sized font so that COBOL displays nicely.
 
@@ -802,23 +777,21 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         fdt.right = new FormAttachment(100, 0);
         fdt.bottom = new FormAttachment(100, 0);
         wCobolSource.setLayoutData(fdt);
-        
+
         return wCobolSource;
     }
 
     /**
      * Creates widgets to select an existing Transformer.
+     * 
      * @param parent the parent composite
      * @param lastControl the last control to attach to
      * @param middle percentage of the parent widget
      * @param margin offset from that position
      * @return the group containing the widgets
      */
-    protected Composite addExistingTransformerComposite(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Composite addExistingTransformerComposite(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
 
         Composite composite = new Composite(parent, SWT.NULL);
 
@@ -830,7 +803,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
         // Add the COBOL-annotated JAXB classes combo box
         addCompositeJaxbClassNamesCombo(composite, null, middle, margin);
-        
+
         FormData fd = new FormData();
         if (lastControl == null) {
             fd.top = new FormAttachment(0, margin);
@@ -839,12 +812,12 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         }
         fd.left = new FormAttachment(0, margin);
         fd.right = new FormAttachment(100, 0);
-        fd.bottom= new FormAttachment(100, 0);
+        fd.bottom = new FormAttachment(100, 0);
         composite.setLayoutData(fd);
 
         return composite;
     }
-    
+
     /**
      * A non modifiable combo box to select an existing COBOL-annotated JAXB
      * class.
@@ -855,15 +828,12 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      * @param margin offset from that position
      * @return the new combo box
      */
-    protected Control addCompositeJaxbClassNamesCombo(
-            final Composite parent,
-            final Control lastControl,
-            final int middle,
-            final int margin) {
+    protected Control addCompositeJaxbClassNamesCombo(final Composite parent,
+            final Control lastControl, final int middle, final int margin) {
 
         wCompositeJaxbClassNames = new Combo(parent, SWT.READ_ONLY | SWT.SIMPLE);
-        wCompositeJaxbClassNames.setToolTipText(getI18N(
-                "ZosFileInputDialog.CobolAnnotatedJaxbClass.Tooltip"));
+        wCompositeJaxbClassNames
+                .setToolTipText(getI18N("ZosFileInputDialog.CobolAnnotatedJaxbClass.Tooltip"));
         props.setLook(wCompositeJaxbClassNames);
 
         FormData fd = new FormData();
@@ -885,8 +855,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      */
     protected void addFieldsTab(final int middle, final int margin) {
         wFieldsTab = new CTabItem(wTabFolder, SWT.NONE);
-        wFieldsTab.setText(getI18N(
-                "ZosFileInputDialog.Fields.Tab"));
+        wFieldsTab.setText(getI18N("ZosFileInputDialog.Fields.Tab"));
 
         wFieldsComp = new Composite(wTabFolder, SWT.NONE);
         props.setLook(wFieldsComp);
@@ -912,72 +881,70 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
     /**
      * Add a grid for z/OS record fields.
+     * 
      * @param parent the parent composite
-     * @param middle percentage of the parent widget 
+     * @param middle percentage of the parent widget
      * @param margin offset from that position
      */
-    protected void addFields(
-            final Composite parent,
-            final int middle,
+    protected void addFields(final Composite parent, final int middle,
             final int margin) {
 
         boolean readOnly = true;
         ColumnInfo[] colinf = new ColumnInfo[] {
-                new ColumnInfo(getI18N(
-                        "ZosFileInputDialog.NameColumn.Column"),
+                new ColumnInfo(getI18N("ZosFileInputDialog.NameColumn.Column"),
                         ColumnInfo.COLUMN_TYPE_TEXT, false, readOnly),
-                new ColumnInfo(getI18N(
-                        "ZosFileInputDialog.TypeColumn.Column"),
+                new ColumnInfo(getI18N("ZosFileInputDialog.TypeColumn.Column"),
                         ColumnInfo.COLUMN_TYPE_TEXT, false, readOnly),
-                new ColumnInfo(getI18N(
-                        "ZosFileInputDialog.LengthColumn.Column"),
+                new ColumnInfo(
+                        getI18N("ZosFileInputDialog.LengthColumn.Column"),
                         ColumnInfo.COLUMN_TYPE_TEXT, false, readOnly),
-                new ColumnInfo(getI18N(
-                        "ZosFileInputDialog.PrecisionColumn.Column"),
+                new ColumnInfo(
+                        getI18N("ZosFileInputDialog.PrecisionColumn.Column"),
                         ColumnInfo.COLUMN_TYPE_TEXT, false, readOnly),
-                new ColumnInfo(getI18N(
-                        "ZosFileInputDialog.TrimTypeColumn.Column"),
+                new ColumnInfo(
+                        getI18N("ZosFileInputDialog.TrimTypeColumn.Column"),
                         ColumnInfo.COLUMN_TYPE_TEXT, false, readOnly),
-                new ColumnInfo(getI18N(
-                        "ZosFileInputDialog.RedefinedColumn.Column"),
-                        ColumnInfo.COLUMN_TYPE_BUTTON, false, readOnly)
-                };
+                new ColumnInfo(
+                        getI18N("ZosFileInputDialog.RedefinedColumn.Column"),
+                        ColumnInfo.COLUMN_TYPE_BUTTON, false, readOnly) };
 
         wFields = new TableView(transMeta, parent, SWT.FULL_SELECTION
                 | SWT.MULTI, colinf, 0, readOnly, null, props);
 
         FormData fdFields = new FormData();
-        fdFields.left  = new FormAttachment(0, 0);
-        fdFields.top   = new FormAttachment(0, 0);
+        fdFields.left = new FormAttachment(0, 0);
+        fdFields.top = new FormAttachment(0, 0);
         fdFields.right = new FormAttachment(100, 0);
-        fdFields.bottom= new FormAttachment(100, 0);
+        fdFields.bottom = new FormAttachment(100, 0);
         wFields.setLayoutData(fdFields);
     }
-    
-	/**
-	 * Add the OK, cancel, get and preview buttons.
+
+    /**
+     * Add the OK, cancel, get and preview buttons.
+     * 
      * @param lastControl control to position from
-	 * @param margin offset from parent widget
-	 */
-	protected void addButtons(final Control lastControl, final int margin) {
-		wOK = new Button(shell, SWT.PUSH);
-		wOK.setText(getI18N("System.Button.OK")); 
-		wCancel = new Button(shell, SWT.PUSH);
-		wCancel.setText(getI18N("System.Button.Cancel")); 
-		wPreview=new Button(shell, SWT.PUSH);
-		wPreview.setText(getI18N("System.Button.Preview"));
-		wPreview.setEnabled(false);
-        wGet=new Button(shell, SWT.PUSH);
+     * @param margin offset from parent widget
+     */
+    protected void addButtons(final Control lastControl, final int margin) {
+        wOK = new Button(shell, SWT.PUSH);
+        wOK.setText(getI18N("System.Button.OK"));
+        wCancel = new Button(shell, SWT.PUSH);
+        wCancel.setText(getI18N("System.Button.Cancel"));
+        wPreview = new Button(shell, SWT.PUSH);
+        wPreview.setText(getI18N("System.Button.Preview"));
+        wPreview.setEnabled(false);
+        wGet = new Button(shell, SWT.PUSH);
         wGet.setText(BaseMessages.getString(PKG, "System.Button.GetFields"));
         wGet.setEnabled(false);
 
-		setButtonPositions(new Button[] { wOK, wGet, wPreview, wCancel }, margin, lastControl);
-	}
-	
-	/**
-	 * Add various listeners to widgets and shell.
-	 */
-	protected void addListeners() {
+        setButtonPositions(new Button[] { wOK, wGet, wPreview, wCancel },
+                margin, lastControl);
+    }
+
+    /**
+     * Add various listeners to widgets and shell.
+     */
+    protected void addListeners() {
 
         ModifyListener lsMod = new ModifyListener() {
             public void modifyText(ModifyEvent e) {
@@ -993,22 +960,22 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         wCompositeJaxbClassNames.addModifyListener(lsMod);
 
         lsCancel = new Listener() {
-			public void handleEvent(Event e) {
-				cancel();
-			}
-		};
-		lsOK = new Listener() {
-			public void handleEvent(Event e) {
-				ok();
-			}
-		};
-		lsPreview = new Listener() {
-			public void handleEvent(Event e) {
-				preview();
-			}
-		};
+            public void handleEvent(Event e) {
+                cancel();
+            }
+        };
+        lsOK = new Listener() {
+            public void handleEvent(Event e) {
+                ok();
+            }
+        };
+        lsPreview = new Listener() {
+            public void handleEvent(Event e) {
+                preview();
+            }
+        };
 
-		lsGet = new Listener() {
+        lsGet = new Listener() {
             public void handleEvent(Event e) {
                 getCobolFields();
                 enableOrDisable();
@@ -1016,41 +983,40 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         };
 
         wCancel.addListener(SWT.Selection, lsCancel);
-		wOK.addListener(SWT.Selection, lsOK);
-		wPreview.addListener(SWT.Selection, lsPreview);
+        wOK.addListener(SWT.Selection, lsOK);
+        wPreview.addListener(SWT.Selection, lsPreview);
         wGet.addListener(SWT.Selection, lsGet);
 
-		lsDef = new SelectionAdapter() {
-			public void widgetDefaultSelected(SelectionEvent e) {
-				ok();
-			}
-		};
+        lsDef = new SelectionAdapter() {
+            public void widgetDefaultSelected(SelectionEvent e) {
+                ok();
+            }
+        };
 
-		wStepname.addSelectionListener(lsDef);
+        wStepname.addSelectionListener(lsDef);
 
-		addHostCharsetListeners();
-		addFilenameListeners();
-		
-		addCobolInputTypeListener();
-		addCobolFileListeners();
-		
-		// Detect X or ALT-F4 or something that kills this window...
-		shell.addShellListener(new ShellAdapter() {
-			public void shellClosed(ShellEvent e) {
-				cancel();
-			}
-		});
+        addHostCharsetListeners();
+        addFilenameListeners();
 
-		
-	}
-	
-	/**
-	 * Add listeners to the file name related widgets.
-	 * Listen to the browse button next to the file name.
-	 */
-	protected void addFilenameListeners() {
+        addCobolInputTypeListener();
+        addCobolFileListeners();
 
-		wFilename.addSelectionListener(lsDef);
+        // Detect X or ALT-F4 or something that kills this window...
+        shell.addShellListener(new ShellAdapter() {
+            public void shellClosed(ShellEvent e) {
+                cancel();
+            }
+        });
+
+    }
+
+    /**
+     * Add listeners to the file name related widgets. Listen to the browse
+     * button next to the file name.
+     */
+    protected void addFilenameListeners() {
+
+        wFilename.addSelectionListener(lsDef);
 
         wbbFilename.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
@@ -1063,8 +1029,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
                 }
 
                 dialog.setFilterNames(new String[] {
-                            getI18N("ZosFileInputDialog.FileType.DataFiles"),
-                                      getI18N("System.FileType.AllFiles") });
+                        getI18N("ZosFileInputDialog.FileType.DataFiles"),
+                        getI18N("System.FileType.AllFiles") });
 
                 if (dialog.open() != null) {
                     String filePath = dialog.getFilterPath()
@@ -1075,26 +1041,26 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
             }
         });
 
-	}
-	
-	/**
-	 * Detect if user is switching from one input type to another.
-	 */
-	protected void addCobolInputTypeListener() {
-	    wrbCobolSourceInput.addSelectionListener(new SelectionAdapter() {
+    }
+
+    /**
+     * Detect if user is switching from one input type to another.
+     */
+    protected void addCobolInputTypeListener() {
+        wrbCobolSourceInput.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent e) {
                 doSelectInputType();
             }
-	        
-	    });
-	    
-	}
-	
+
+        });
+
+    }
+
     /**
      * Show or hide appropriate group depending on user selection.
      */
     protected void doSelectInputType() {
-        
+
         if (wrbCobolSourceInput.getSelection()) {
             wNewTransformerComposite.setVisible(true);
             wExistingTransformerComposite.setVisible(false);
@@ -1103,30 +1069,26 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
             wExistingTransformerComposite.setVisible(true);
         }
     }
-    
-	
+
     /**
      * Retrieve all available COBOL-annotated JAXB classes and set the Combo box
      * with these classes. Each class is associated with a containing jar.
      * 
      * @param compositeJaxbClassName the currently selected composite class name
-     *            or null if no selection
+     *        or null if no selection
      */
     protected void initCompositeJaxbClassNamesCombo(
             final String compositeJaxbClassName) {
         try {
-            List < String > compositeJaxbClassNames =
-                    CobolToPdi.getAvailableCompositeJaxbClassNames();
+            List<String> compositeJaxbClassNames = CobolToPdi
+                    .getAvailableCompositeJaxbClassNames();
             if (!Const.isEmpty(compositeJaxbClassNames)) {
                 Collections.sort(compositeJaxbClassNames);
-                wCompositeJaxbClassNames
-                        .setItems(compositeJaxbClassNames
-                                .toArray(new String[compositeJaxbClassNames
-                                        .size()]));
+                wCompositeJaxbClassNames.setItems(compositeJaxbClassNames
+                        .toArray(new String[compositeJaxbClassNames.size()]));
                 if (compositeJaxbClassName != null) {
-                    wCompositeJaxbClassNames.select(
-                            wCompositeJaxbClassNames
-                                    .indexOf(compositeJaxbClassName));
+                    wCompositeJaxbClassNames.select(wCompositeJaxbClassNames
+                            .indexOf(compositeJaxbClassName));
                 }
             }
         } catch (KettleFileException e1) {
@@ -1170,8 +1132,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
     }
 
     /**
-     * Add listeners to the COBOL related widgets.
-     * Listen to the browse button to select a COBOL file from the file system.
+     * Add listeners to the COBOL related widgets. Listen to the browse button
+     * to select a COBOL file from the file system.
      */
     protected void addCobolFileListeners() {
 
@@ -1184,17 +1146,16 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
                             "*.cpy;*.copy", "*" });
 
                     dialog.setFilterNames(new String[] {
-                                getI18N("ZosFileInputDialog.FileType.CobolFiles"),
-                                getI18N("ZosFileInputDialog.FileType.CopyFiles"),
-                                getI18N("System.FileType.AllFiles")
-                                          });
+                            getI18N("ZosFileInputDialog.FileType.CobolFiles"),
+                            getI18N("ZosFileInputDialog.FileType.CopyFiles"),
+                            getI18N("System.FileType.AllFiles") });
 
                     if (dialog.open() != null) {
                         filePath = dialog.getFilterPath()
                                 + System.getProperty("file.separator")
                                 + dialog.getFileName();
-                        wCobolSource.setText(FileUtils.readFileToString(new File(
-                                filePath), wCobolCharset.getText()));
+                        wCobolSource.setText(FileUtils.readFileToString(
+                                new File(filePath), wCobolCharset.getText()));
                         _cobolFilePath = filePath;
                     }
                 } catch (IOException e1) {
@@ -1204,15 +1165,15 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         });
 
     }
-	
+
     /**
-     * Add listeners to the host charset combo box.
-     * Make sure the text entered is in the available charsets list
+     * Add listeners to the host charset combo box. Make sure the text entered
+     * is in the available charsets list
      */
     protected void addHostCharsetListeners() {
 
         wHostCharset.addFocusListener(new FocusListener() {
-            
+
             public void focusGained(FocusEvent arg0) {
                 return;
             }
@@ -1228,7 +1189,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         });
 
     }
-	
+
     /**
      * Enable or disable buttons depending on context.
      */
@@ -1241,15 +1202,14 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
             wGet.setEnabled(false);
         }
 
-        if (wFields.nrNonEmpty() > 0
-                && wFilename.getText().length() > 0) {
+        if (wFields.nrNonEmpty() > 0 && wFilename.getText().length() > 0) {
             wPreview.setEnabled(true);
         } else {
             wPreview.setEnabled(false);
         }
 
     }
-	
+
     /**
      * Tell the user we were not able to read the COBOL file.
      * 
@@ -1258,45 +1218,44 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      */
     protected void invalidCobolFileDialog(final String filePath,
             final String exceptionMsg) {
-        new ErrorDialog(
-                wHostCharset.getShell(),
+        new ErrorDialog(wHostCharset.getShell(),
                 getI18N("ZosFileInputDialog.InvalidCobolFile.DialogTitle"),
                 getI18N("ZosFileInputDialog.InvalidCobolFile.DialogMessage",
-                        filePath, exceptionMsg),
-                null);
+                        filePath, exceptionMsg), null);
 
     }
-    
-	/**
-	 * User abandons.
-	 */
-	private void cancel() {
-		stepname = null;
-		_inputMeta.setChanged(changed);
-		dispose();
-	}
-	
-	/**
-	 * If user didn't bother to name the step, don't save the meta. 
-	 */
-	private void ok() {
-		if (Const.isEmpty(wStepname.getText())) return;
 
-		setMetaDataFromDialog(_inputMeta);
-		stepname = wStepname.getText();
-		dispose();
-	}
-	
-	/**
-	 * Fields are extracted from a COBOL-annotated JAXB class.
-	 * <p/>
-	 * If such a class has been identified in the GUI we use it directly.
-	 * Otherwise, if we have COBOL code, then the first step if to generate
-	 * the COBOL-annotated JAXB classes and then use these.
-	 * <p/>
-	 * Since these classes are in a location unknown to PDI, we set
-	 * a class loader that will contain them.
-	 */
+    /**
+     * User abandons.
+     */
+    private void cancel() {
+        stepname = null;
+        _inputMeta.setChanged(changed);
+        dispose();
+    }
+
+    /**
+     * If user didn't bother to name the step, don't save the meta.
+     */
+    private void ok() {
+        if (Const.isEmpty(wStepname.getText()))
+            return;
+
+        setMetaDataFromDialog(_inputMeta);
+        stepname = wStepname.getText();
+        dispose();
+    }
+
+    /**
+     * Fields are extracted from a COBOL-annotated JAXB class.
+     * <p/>
+     * If such a class has been identified in the GUI we use it directly.
+     * Otherwise, if we have COBOL code, then the first step if to generate the
+     * COBOL-annotated JAXB classes and then use these.
+     * <p/>
+     * Since these classes are in a location unknown to PDI, we set a class
+     * loader that will contain them.
+     */
     protected void getCobolFields() {
 
         if (wrbCobolSourceInput.getSelection()
@@ -1308,9 +1267,8 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         }
 
         try {
-            setDialogFieldsFromMetaData(CobolToPdi.getCobolFields(
-                    wCompositeJaxbClassNames.getText(),
-                    getClass()));
+            setDialogFieldsFromMetaData(Cob2PdiFields.getCobolFields(
+                    wCompositeJaxbClassNames.getText(), getClass()));
             wTabFolder.setSelection(2);
 
         } catch (KettleException e) {
@@ -1320,22 +1278,18 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         }
 
     }
-    
+
     /**
      * From COBOL code, generate the Transformer and associated COBOL-annotated
-     * JAXB classes.
-     * Store results in widgets;
+     * JAXB classes. Store results in widgets;
      * 
      * @return true if generation succeeded, false otherwise
      */
     protected boolean generateTransformer() {
 
-        CobolToFieldsProgressDialog progressDialog =
-                new CobolToFieldsProgressDialog(wFields.getShell(),
-                        wStepname.getText(),
-                        wCobolSource.getText(),
-                        wCobolCharset.getText(),
-                        _cobolFilePath);
+        CobolToFieldsProgressDialog progressDialog = new CobolToFieldsProgressDialog(
+                wFields.getShell(), wStepname.getText(),
+                wCobolSource.getText(), wCobolCharset.getText(), _cobolFilePath);
 
         if (progressDialog.open()) {
 
@@ -1347,8 +1301,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
                 // Update the class list since we just added a jar
                 // TODO If more than one JAXB class, popup a selection dialog
                 initCompositeJaxbClassNamesCombo(progressDialog
-                        .getCompositeJaxbClassNames()
-                        .get(0));
+                        .getCompositeJaxbClassNames().get(0));
 
                 return true;
             }
@@ -1359,22 +1312,21 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
     /**
      * Popup an error dialog.
+     * 
      * @param messageKey the message I18N key.
      * @param e the associated exception
      */
     protected void fieldsErrorDialog(final String messageKey, final Throwable e) {
-        new ErrorDialog(
-                wFields.getShell(),
+        new ErrorDialog(wFields.getShell(),
                 getI18N("ZosFileInputDialog.FailedToGetFields.DialogTitle"),
-                getI18N(messageKey),
-                e);
+                getI18N(messageKey), e);
 
     }
 
-	/**
-	 * Service the preview button.
-	 */
-	protected void preview() {
+    /**
+     * Service the preview button.
+     */
+    protected void preview() {
         ZosFileInputMeta oneMeta = new ZosFileInputMeta();
         setMetaDataFromDialog(oneMeta);
 
@@ -1389,8 +1341,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
 
         int previewSize = numberDialog.open();
         if (previewSize > 0) {
-            TransPreviewProgressDialog progressDialog =
-                new TransPreviewProgressDialog(
+            TransPreviewProgressDialog progressDialog = new TransPreviewProgressDialog(
                     shell, previewMeta, new String[] { wStepname.getText() },
                     new int[] { previewSize });
             progressDialog.open();
@@ -1417,21 +1368,22 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
                     loggingText);
             prd.open();
         }
-		
-	}
-	
+
+    }
+
     /*
      * ------------------------------------------------------------------------
      * Model Read/Update section
      * ------------------------------------------------------------------------
      */
 
-	/**
+    /**
      * Copy information from the dialog fields to the meta-data (model).
+     * 
      * @param meta a set of meta data
-     */ 
+     */
     private void setMetaDataFromDialog(final ZosFileInputMeta meta) {
-        
+
         meta.setFilename(wFilename.getText());
         meta.setIsVariableLength(wcbIsVariableLength.getSelection());
         meta.setHasRecordDescriptorWord(wcbHasRecordDescriptorWord
@@ -1443,38 +1395,44 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         meta.setCobolSource(wCobolSource.getText());
         meta.setCobolCharset(wCobolCharset.getText());
         meta.setCobolFilePath(_cobolFilePath);
-        
-        int nrNonEmptyFields = wFields.nrNonEmpty(); 
+
+        int nrNonEmptyFields = wFields.nrNonEmpty();
         meta.setInputFields(new CobolFileInputField[nrNonEmptyFields]);
 
-        for (int i=0;i<nrNonEmptyFields;i++) {
+        for (int i = 0; i < nrNonEmptyFields; i++) {
             TableItem item = wFields.getNonEmpty(i);
             meta.getInputFields()[i] = new CobolFileInputField();
-            
-            int colnr=1;
-            meta.getInputFields()[i].setName( item.getText(colnr++) );
-            meta.getInputFields()[i].setType( ValueMeta.getType( item.getText(colnr++) ) );
-            meta.getInputFields()[i].setLength( Const.toInt(item.getText(colnr++), -1) );
-            meta.getInputFields()[i].setPrecision( Const.toInt(item.getText(colnr++), -1) );
-            meta.getInputFields()[i].setTrimType(ValueMeta.getTrimTypeByDesc( item.getText(colnr++) ));
-            meta.getInputFields()[i].setRedefined(item.getText(colnr++).equals("*"));
+
+            int colnr = 1;
+            meta.getInputFields()[i].setName(item.getText(colnr++));
+            meta.getInputFields()[i].setType(ValueMeta.getType(item
+                    .getText(colnr++)));
+            meta.getInputFields()[i].setLength(Const.toInt(
+                    item.getText(colnr++), -1));
+            meta.getInputFields()[i].setPrecision(Const.toInt(
+                    item.getText(colnr++), -1));
+            meta.getInputFields()[i].setTrimType(ValueMeta
+                    .getTrimTypeByDesc(item.getText(colnr++)));
+            meta.getInputFields()[i].setRedefined(item.getText(colnr++).equals(
+                    "*"));
         }
         wFields.removeEmptyRows();
         wFields.setRowNums();
         wFields.optWidth(true);
-        
+
         meta.setChanged();
     }
 
     /**
      * Copy information from the meta-data (model) to the dialog fields.
-     */ 
+     */
     public void setDialogFromMetaData() {
         wStepname.setText(stepname);
-        
+
         wFilename.setText(Const.NVL(_inputMeta.getFilename(), ""));
         wcbIsVariableLength.setSelection(_inputMeta.isVariableLength());
-        wcbHasRecordDescriptorWord.setSelection(_inputMeta.hasRecordDescriptorWord());
+        wcbHasRecordDescriptorWord.setSelection(_inputMeta
+                .hasRecordDescriptorWord());
         setHostCharsetFromMetaData();
 
         if (_inputMeta.isFromCobolSource()) {
@@ -1486,19 +1444,20 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         }
         initCompositeJaxbClassNamesCombo(_inputMeta.getCompositeJaxbClassName());
         wCobolSource.setText(Const.NVL(_inputMeta.getCobolSource(), ""));
-        wCobolCharset.select(wCobolCharset.indexOf(_inputMeta.getCobolCharset()));
+        wCobolCharset
+                .select(wCobolCharset.indexOf(_inputMeta.getCobolCharset()));
         _cobolFilePath = _inputMeta.getCobolFilePath();
         doSelectInputType();
-        
+
         setDialogFieldsFromMetaData(_inputMeta.getInputFields());
 
         wStepname.selectAll();
         enableOrDisable();
     }
-    
+
     /**
-     * The host character set might not exist in this VM in which case
-     * we need to warn the user that he needs to get charsets.jar.
+     * The host character set might not exist in this VM in which case we need
+     * to warn the user that he needs to get charsets.jar.
      */
     public void setHostCharsetFromMetaData() {
         for (String item : wHostCharset.getItems()) {
@@ -1509,7 +1468,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
         }
         invalidHostCharsetDialog(_inputMeta.getHostCharset());
     }
-    
+
     /**
      * Tell the user the host charset is not good. Probably due to a missing
      * charsets.jar.
@@ -1517,31 +1476,36 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      * @param hostCharset the erroneous charset
      */
     protected void invalidHostCharsetDialog(final String hostCharset) {
-        new ErrorDialog(
-                wHostCharset.getShell(),
+        new ErrorDialog(wHostCharset.getShell(),
                 getI18N("ZosFileInputDialog.InvalidHostCharset.DialogTitle"),
                 getI18N("ZosFileInputDialog.InvalidHostCharset.DialogMessage",
-                        hostCharset),
-                null);
+                        hostCharset), null);
 
     }
-    
+
     /**
      * Copy the fields info from meta data to the dialog fields.
+     * 
      * @param fields the fields meta data
      * 
      */
     public void setDialogFieldsFromMetaData(final CobolFileInputField[] fields) {
         wFields.table.removeAll();
-        for (int i=0; i< fields.length; i++) {
+        for (int i = 0; i < fields.length; i++) {
             CobolFileInputField field = fields[i];
-            
+
             TableItem item = new TableItem(wFields.table, SWT.NONE);
-            int colnr=1;
+            int colnr = 1;
             item.setText(colnr++, Const.NVL(field.getName(), ""));
             item.setText(colnr++, ValueMeta.getTypeDesc(field.getType()));
-            item.setText(colnr++, field.getLength()>=0?Integer.toString(field.getLength()):"") ;
-            item.setText(colnr++, field.getPrecision()>=0?Integer.toString(field.getPrecision()):"") ;
+            item.setText(
+                    colnr++,
+                    field.getLength() >= 0 ? Integer.toString(field.getLength())
+                            : "");
+            item.setText(
+                    colnr++,
+                    field.getPrecision() >= 0 ? Integer.toString(field
+                            .getPrecision()) : "");
             item.setText(colnr++, Const.NVL(field.getTrimTypeDesc(), ""));
             if (field.isRedefined()) {
                 item.setText(colnr++, "*");
@@ -1559,11 +1523,12 @@ public class ZosFileInputDialog extends BaseStepDialog implements StepDialogInte
      */
     /**
      * Shortcut to I18N messages.
+     * 
      * @param key the message identifier
      * @param parameters parameters if any
      * @return the localized message
      */
-    public static String getI18N(final String key, final String...parameters) {
+    public static String getI18N(final String key, final String... parameters) {
         return BaseMessages.getString(PKG, key, parameters);
     }
 }

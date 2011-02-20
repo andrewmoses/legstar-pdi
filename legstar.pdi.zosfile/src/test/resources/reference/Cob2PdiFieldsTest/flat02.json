@@ -1,0 +1,1 @@
+[{name:"ComNumber",type:"Integer",precision:0}, {name:"ComName",type:"String",length:20}, {name:"ComAmount",type:"BigNumber",precision:2}, {name:"ComArray_0",type:"Integer",precision:0}, {name:"ComArray_1",type:"Integer",precision:0}, {name:"ComArray_2",type:"Integer",precision:0}, {name:"ComArray_3",type:"Integer",precision:0}, {name:"ComArray_4",type:"Integer",precision:0}]
