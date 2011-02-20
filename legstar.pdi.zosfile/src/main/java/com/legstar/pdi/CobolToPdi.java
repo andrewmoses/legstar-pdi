@@ -19,13 +19,10 @@ import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.ValueMeta;
-import org.pentaho.di.core.row.ValueMetaInterface;
 import org.scannotation.AnnotationDB;
 
 import com.legstar.coxb.CobolBindingException;
 import com.legstar.coxb.convert.simple.CobolSimpleConverters;
-import com.legstar.coxb.host.HostContext;
 import com.legstar.coxb.host.HostException;
 import com.legstar.coxb.impl.visitor.FlatCobolUnmarshalVisitor;
 import com.legstar.coxb.transform.HostTransformStatus;
@@ -94,37 +91,6 @@ public class CobolToPdi {
     }
 
     /**
-     * Generates row meta structure from a fields array.
-     * 
-     * @param fields the fields array
-     * @param origin the data origin
-     * @param rowMeta the row meta to generate
-     */
-    public static void fieldsToRowMeta(final CobolFileInputField[] fields,
-            final String origin, final RowMetaInterface rowMeta) {
-
-        rowMeta.clear(); // Start with a clean slate, eats the input
-
-        for (int i = 0; i < fields.length; i++) {
-            CobolFileInputField field = fields[i];
-
-            ValueMetaInterface valueMeta = new ValueMeta(field.getName(),
-                    field.getType());
-            valueMeta.setConversionMask(field.getFormat());
-            valueMeta.setLength(field.getLength());
-            valueMeta.setPrecision(field.getPrecision());
-            valueMeta.setConversionMask(field.getFormat());
-            valueMeta.setDecimalSymbol(field.getDecimalSymbol());
-            valueMeta.setGroupingSymbol(field.getGroupSymbol());
-            valueMeta.setCurrencySymbol(field.getCurrencySymbol());
-            valueMeta.setTrimType(field.getTrimType());
-            valueMeta.setOrigin(origin);
-
-            rowMeta.addValueMeta(valueMeta);
-        }
-    }
-
-    /**
      * Creates a PDI output row from host data.
      * 
      * @param outputRowMeta the output row meta data.
@@ -164,15 +130,6 @@ public class CobolToPdi {
         } catch (HostException e) {
             throw new KettleException(e);
         }
-    }
-
-    /**
-     * The default mainframe character set.
-     * 
-     * @return the default mainframe character set
-     */
-    public static String getDefaultHostCharset() {
-        return HostContext.getDefaultHostCharsetName();
     }
 
     /**
@@ -263,10 +220,8 @@ public class CobolToPdi {
         String pluginLocation = null;
         PluginInterface plugin = PluginRegistry.getInstance().findPluginWithId(
                 StepPluginType.class, "com.legstar.pdi.zosfile");
-        if (plugin != null) {
-            if (plugin.getPluginDirectory() != null) {
-                pluginLocation = plugin.getPluginDirectory().getPath();
-            }
+        if (plugin != null && plugin.getPluginDirectory() != null) {
+            pluginLocation = plugin.getPluginDirectory().getPath();
         } else if (System.getProperty(PLUGIN_FOLDER_PROPERTY) != null) {
             pluginLocation = System.getProperty(PLUGIN_FOLDER_PROPERTY);
         } else {

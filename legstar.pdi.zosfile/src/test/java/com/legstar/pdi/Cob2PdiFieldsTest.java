@@ -1,11 +1,11 @@
 package com.legstar.pdi;
 
-import java.io.File;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
+import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMetaInterface;
 
 /**
  * Tests for CobolToPdi class.
@@ -16,9 +16,6 @@ public class Cob2PdiFieldsTest extends AbstractTest {
     /** True when references should be created. */
     private static final boolean CREATE_REFERENCES = false;
 
-    /** Current context class loader. */
-    private ClassLoader _tccl;
-
     /**
      * Put a set of test case jars onto the context class loader.
      * 
@@ -27,26 +24,39 @@ public class Cob2PdiFieldsTest extends AbstractTest {
     public void setUp() throws Exception {
         super.setUp();
         setCreateReferences(CREATE_REFERENCES);
-        FileUtils.forceMkdir(GEN_PDISCHEMA_DIR);
-        FileUtils.cleanDirectory(GEN_PDISCHEMA_DIR);
 
-        _tccl = Thread.currentThread().getContextClassLoader();
-        String[] jarFileNames = CobolToPdi.getClasspath(
-                "src/test/resources/jars").split(";");
-        URL[] jarFileUrls = new URL[jarFileNames.length];
-        for (int i = 0; i < jarFileNames.length; i++) {
-            jarFileUrls[i] = new File(jarFileNames[i]).toURI().toURL();
-        }
-        URLClassLoader cl = new URLClassLoader(jarFileUrls, _tccl);
-        Thread.currentThread().setContextClassLoader(cl);
-    }
-
-    public void tearDown() {
-        Thread.currentThread().setContextClassLoader(_tccl);
     }
 
     /**
-     * Test flat01.
+     * Check if name conflicts are handled correctly.
+     */
+    public void testNameConflicts() {
+        List<CobolFileInputField> fields = new ArrayList<CobolFileInputField>();
+        assertEquals("aname",
+                Cob2PdiFields.newName(fields, "aname", null, null));
+        assertEquals("aname_0",
+                Cob2PdiFields.newName(fields, "aname", null, "_0"));
+        assertEquals("aname_0",
+                Cob2PdiFields.newName(fields, "aname", "parent", "_0"));
+        CobolFileInputField field = new CobolFileInputField();
+        field.setName("aname_0");
+        fields.add(field);
+        assertEquals("aname_0",
+                Cob2PdiFields.newName(fields, "aname", null, "_0"));
+        assertEquals("parent_aname_0",
+                Cob2PdiFields.newName(fields, "aname", "parent", "_0"));
+        field = new CobolFileInputField();
+        field.setName("parent_aname_0");
+        fields.add(field);
+        assertEquals("parent_aname_0",
+                Cob2PdiFields.newName(fields, "aname", "parent", "_0"));
+        assertEquals("grandparent_parent_aname_0", Cob2PdiFields.newName(
+                fields, "aname", "grandparent_parent", "_0"));
+
+    }
+
+    /**
+     * Test flat01 (simple).
      * 
      * @throws Exception
      */
@@ -59,7 +69,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
     }
 
     /**
-     * Test flat02.
+     * Test flat02 (simple array).
      * 
      * @throws Exception
      */
@@ -72,7 +82,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
     }
 
     /**
-     * Test stru03.
+     * Test stru03 (complex array).
      * 
      * @throws Exception
      */
@@ -85,7 +95,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
     }
 
     /**
-     * Test stru04.
+     * Test stru04 (several nested arrays).
      * 
      * @throws Exception
      */
@@ -109,4 +119,67 @@ public class Cob2PdiFieldsTest extends AbstractTest {
         check("stru05", "json", fields.toString());
 
     }
+
+    /**
+     * Test rdef01 (with redefines).
+     * 
+     * @throws Exception
+     */
+    public void testRdef01() throws Exception {
+
+        List<CobolFileInputField> fields = Cob2PdiFields
+                .toFields("com.legstar.test.coxb.rdef01cc.Rdef01Record");
+        check("rdef01", "json", fields.toString());
+
+    }
+
+    /**
+     * Test rdef01 (more complex redefines).
+     * 
+     * @throws Exception
+     */
+    public void testRdef02() throws Exception {
+
+        List<CobolFileInputField> fields = Cob2PdiFields
+                .toFields("com.legstar.test.coxb.rdef02cc.Rdef02Record");
+        check("rdef02", "json", fields.toString());
+
+    }
+
+    /**
+     * Test alltypes (All supported COBOL types).
+     * 
+     * @throws Exception
+     */
+    public void testAllTypes() throws Exception {
+
+        List<CobolFileInputField> fields = Cob2PdiFields
+                .toFields("com.legstar.test.coxb.alltypcc.AlltypesRecord");
+        check("alltypcc", "json", fields.toString());
+
+    }
+
+    /**
+     * Test generation of output row meta.
+     * 
+     * @throws Exception id transformation fails
+     */
+    public void testToOutputRowMeta() throws Exception {
+
+        RowMetaInterface outputRowMeta = new RowMeta();
+        Cob2PdiFields.fieldsToRowMeta(Cob2PdiFields.getCobolFields(
+                "com.legstar.test.coxb.flat01cc.Flat01Record", getClass()),
+                null, outputRowMeta);
+        ValueMetaInterface valueMeta = outputRowMeta.getValueMeta(0);
+        assertEquals("ComNumber", valueMeta.getName());
+        assertEquals("Integer", valueMeta.getTypeDesc());
+        valueMeta = outputRowMeta.getValueMeta(1);
+        assertEquals("ComName", valueMeta.getName());
+        assertEquals("String", valueMeta.getTypeDesc());
+        valueMeta = outputRowMeta.getValueMeta(2);
+        assertEquals("ComAmount", valueMeta.getName());
+        assertEquals("BigNumber", valueMeta.getTypeDesc());
+
+    }
+
 }

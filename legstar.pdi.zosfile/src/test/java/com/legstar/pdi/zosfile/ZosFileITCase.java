@@ -47,9 +47,72 @@ public class ZosFileITCase extends TestCase {
      * 
      * */
     public void setUp() throws KettleException {
+        System.setProperty(CobolToPdi.PLUGIN_FOLDER_PROPERTY, "target/"
+                + CobolToPdi.DEFAULT_PLUGIN_FOLDER);
         System.setProperty(Const.KETTLE_PLUGIN_CLASSES,
                 "com.legstar.pdi.zosfile.ZosFileInputMeta");
         KettleEnvironment.init();
+    }
+
+    /**
+     * Create a transformation, generate the transformers and run them. This
+     * simulates the complete process as if performed interactively.
+     * 
+     * @throws Exception if test fails
+     */
+    public void testGenerateAndExecute() throws Exception {
+
+        String zosFileInputStepName = "zosFileInputStep";
+
+        // First generate and deploy artifacts from COBOL source
+        File cobolSourceFile = new File("src/test/resources/copybooks/CUSDATCC");
+        String cobolCharset = "ISO-8859-1";
+        String cobolSource = FileUtils.readFileToString(cobolSourceFile,
+                cobolCharset);
+
+        Cob2TransResult cob2transResult = Cob2PdiTrans.generateTransformer(
+                null, zosFileInputStepName, cobolSource, cobolCharset,
+                cobolSourceFile.getPath(), getCompilerClassPath());
+
+        String compositeJaxbClassName = CobolToPdi.getCompositeJaxbClassName(
+                ClassUtil.toQualifiedClassName(
+                        cob2transResult.coxbgenResult.jaxbPackageName,
+                        cob2transResult.coxbgenResult.rootClassNames.get(0)),
+                cob2transResult.jarFile.getName());
+
+        // Get our plugin from the PDI registry
+        PluginRegistry registry = PluginRegistry.getInstance();
+
+        // Create a z/OS file input step using the generated artifacts
+        PluginInterface sp = registry.findPluginWithId(StepPluginType.class,
+                "com.legstar.pdi.zosfile");
+        ZosFileInputMeta zosFileInputMeta = (ZosFileInputMeta) registry
+                .loadClass(sp);
+        zosFileInputMeta.setCompositeJaxbClassName(compositeJaxbClassName);
+
+        // Get the meta fields descriptions
+        zosFileInputMeta.setInputFields(Cob2PdiFields.getCobolFields(
+                compositeJaxbClassName, getClass()));
+
+        // Specify the z/OS file location
+        zosFileInputMeta.setFilename("src/main/file/ZOS.FCUSTDAT.RDW.bin");
+        zosFileInputMeta.setIsVariableLength(true);
+        zosFileInputMeta.setHasRecordDescriptorWord(true);
+
+        // Setup the a PDI Transformation [injector -> zosFileInput -> dummy]
+        // and run it
+        TransMeta transMeta = TransTestFactory.generateTestTransformation(
+                new Variables(), zosFileInputMeta, zosFileInputStepName);
+
+        List<RowMetaAndData> result = TransTestFactory
+                .executeTestTransformation(transMeta,
+                        TransTestFactory.INJECTOR_STEPNAME,
+                        zosFileInputStepName, TransTestFactory.DUMMY_STEPNAME,
+                        createSourceData());
+
+        // Chack that our 10000 lines made it to the dummy step
+        assertEquals(10000, result.size());
+
     }
 
     /**
@@ -100,67 +163,6 @@ public class ZosFileITCase extends TestCase {
         trans.waitUntilFinished();
         Result result = trans.getResult();
         assertEquals(0, result.getNrErrors());
-    }
-
-    /**
-     * Create a transformation, generate the transformers and run them. This
-     * simulates the complete process as if performed interactively.
-     * 
-     * @throws Exception if test fails
-     */
-    public void testGenerateAndExecute() throws Exception {
-
-        String zosFileInputStepName = "zosFileInputStep";
-
-        // First generate and deploy artifacts from COBOL source
-        File cobolSourceFile = new File("src/main/cobol/RCUSTDAT.cpy");
-        String cobolCharset = "ISO-8859-1";
-        String cobolSource = FileUtils.readFileToString(cobolSourceFile,
-                cobolCharset);
-
-        Cob2TransResult cob2transResult = Cob2PdiTrans.generateTransformer(
-                null, zosFileInputStepName, cobolSource, cobolCharset,
-                cobolSourceFile.getPath(), getCompilerClassPath());
-
-        String compositeJaxbClassName = CobolToPdi.getCompositeJaxbClassName(
-                ClassUtil.toQualifiedClassName(
-                        cob2transResult.coxbgenResult.jaxbPackageName,
-                        cob2transResult.coxbgenResult.rootClassNames.get(0)),
-                cob2transResult.jarFile.getName());
-
-        // Get our plugin from the PDI registry
-        PluginRegistry registry = PluginRegistry.getInstance();
-
-        // Create a z/OS file input step using the generated artifacts
-        PluginInterface sp = registry.findPluginWithId(StepPluginType.class,
-                "com.legstar.pdi.zosfile");
-        ZosFileInputMeta zosFileInputMeta = (ZosFileInputMeta) registry
-                .loadClass(sp);
-        zosFileInputMeta.setCompositeJaxbClassName(compositeJaxbClassName);
-
-        // Get the meta fields descriptions
-        zosFileInputMeta.setInputFields(Cob2PdiFields.getCobolFields(
-                compositeJaxbClassName, getClass()));
-
-        // Specify the z/OS file location
-        zosFileInputMeta.setFilename("src/main/file/ZOS.FCUSTDAT.RDW.bin");
-        zosFileInputMeta.setIsVariableLength(true);
-        zosFileInputMeta.setHasRecordDescriptorWord(true);
-
-        // Setup the a PDI Transformation [injector -> zosFileInput -> dummy]
-        // and run it
-        TransMeta transMeta = TransTestFactory.generateTestTransformation(
-                new Variables(), zosFileInputMeta, zosFileInputStepName);
-
-        List<RowMetaAndData> result = TransTestFactory
-                .executeTestTransformation(transMeta,
-                        TransTestFactory.INJECTOR_STEPNAME,
-                        zosFileInputStepName, TransTestFactory.DUMMY_STEPNAME,
-                        createSourceData());
-
-        // Chack that our 10000 lines made it to the dummy step
-        assertEquals(10000, result.size());
-
     }
 
     /**

@@ -41,4 +41,23 @@ public class Cob2PdiTransTest extends AbstractTest {
                 jarEntry.getName());
     }
 
+    /**
+     * Test that we can generate valid package names.
+     * 
+     * @throws Exception if something goes wrong
+     */
+    public void testPackageName() throws Exception {
+        assertEquals("d41d8cd98f00b204e9800998ecf8427e",
+                Cob2PdiTrans.getPackageName(null, "", "ISO-8859-1", null));
+        assertEquals("z_002fosfileinput.d41d8cd98f00b204e9800998ecf8427e",
+                Cob2PdiTrans.getPackageName("z/OS File Input", "",
+                        "ISO-8859-1", null));
+        assertEquals("_1my_0025020cobol", Cob2PdiTrans.getPackageName(null,
+                null, null, "1my%020cobol.cbl"));
+        assertEquals("z_002fosfileinput1._1my_0025020cobol",
+                Cob2PdiTrans.getPackageName("z/OS File Input 1", null, null,
+                        "1my%020cobol.cbl"));
+
+    }
+
 }

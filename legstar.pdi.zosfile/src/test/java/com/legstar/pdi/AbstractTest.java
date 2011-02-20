@@ -1,6 +1,8 @@
 package com.legstar.pdi;
 
 import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Vector;
 
 import junit.framework.TestCase;
@@ -33,6 +35,42 @@ public abstract class AbstractTest extends TestCase {
 
     /** This means references should be created instead of compared to results. */
     private boolean _createReferences = false;
+
+    /** Current context class loader. */
+    private ClassLoader _tccl;
+
+    /**
+     * Put a set of test case jars onto the context class loader.
+     * 
+     * @throws Exception
+     */
+    public void setUp() throws Exception {
+
+        _tccl = Thread.currentThread().getContextClassLoader();
+        setTestContextClassLoader(_tccl);
+    }
+
+    public void tearDown() {
+        Thread.currentThread().setContextClassLoader(_tccl);
+    }
+
+    /**
+     * Set a class loader with the COBOL Transformer test cases in.
+     * 
+     * @param parentCl the parent class loader
+     * @throws Exception if setting class loader fails
+     */
+    public static void setTestContextClassLoader(final ClassLoader parentCl)
+            throws Exception {
+        String[] jarFileNames = CobolToPdi.getClasspath(
+                "src/test/resources/jars").split(";");
+        URL[] jarFileUrls = new URL[jarFileNames.length];
+        for (int i = 0; i < jarFileNames.length; i++) {
+            jarFileUrls[i] = new File(jarFileNames[i]).toURI().toURL();
+        }
+        URLClassLoader cl = new URLClassLoader(jarFileUrls, parentCl);
+        Thread.currentThread().setContextClassLoader(cl);
+    }
 
     /**
      * Check a result against a reference.

@@ -12,6 +12,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransTestFactory;
 import org.pentaho.di.trans.TransformationTestCase;
 
+import com.legstar.pdi.AbstractTest;
 import com.legstar.pdi.Cob2PdiFields;
 
 /**
@@ -19,6 +20,24 @@ import com.legstar.pdi.Cob2PdiFields;
  * 
  */
 public class ZosFileInputTest extends TransformationTestCase {
+
+    /** Current context class loader. */
+    private ClassLoader _tccl;
+
+    /**
+     * Put a set of test case jars onto the context class loader.
+     * 
+     * @throws Exception
+     */
+    public void setUp() throws Exception {
+
+        _tccl = Thread.currentThread().getContextClassLoader();
+        AbstractTest.setTestContextClassLoader(_tccl);
+    }
+
+    public void tearDown() {
+        Thread.currentThread().setContextClassLoader(_tccl);
+    }
 
     public ZosFileInputTest() throws KettleException {
         super();
@@ -40,7 +59,7 @@ public class ZosFileInputTest extends TransformationTestCase {
         ZosFileInputMeta zosFileInputMeta = new ZosFileInputMeta();
 
         zosFileInputMeta
-                .setCompositeJaxbClassName("com.legstar.test.coxb.tcobwvb.CustomerData");
+                .setCompositeJaxbClassName("com.legstar.test.coxb.cusdatcc.CustomerData");
         zosFileInputMeta.setFilename("src/test/resources/ZOS.TCOBWVB.ROW1.bin");
 
         zosFileInputMeta.setInputFields(Cob2PdiFields.getCobolFields(

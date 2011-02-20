@@ -1,0 +1,1 @@
+[{name:"Rdef02Item1",type:"Integer",precision:0,redefined:true}, {name:"ComSelect",type:"Integer",precision:0}, {name:"ComName",type:"String",length:10,redefined:true}, {name:"ComItem3",type:"BigNumber",precision:2}]

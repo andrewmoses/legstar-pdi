@@ -32,8 +32,8 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
 import org.w3c.dom.Node;
 
+import com.legstar.pdi.Cob2PdiFields;
 import com.legstar.pdi.CobolFileInputField;
-import com.legstar.pdi.CobolToPdi;
 
 /**
  * This is a Kettle step implementation class. Acts as a model and knows how to
@@ -310,7 +310,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
      */
     public void setDefault() {
         _inputFields = new CobolFileInputField[0];
-        _hostCharset = CobolToPdi.getDefaultHostCharset();
+        _hostCharset = Cob2PdiFields.getDefaultHostCharset();
         _isFromCobolSource = true;
         _cobolCharset = Charset.defaultCharset().name();
     }
@@ -436,7 +436,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
             _hasRecordDescriptorWord = getTagBoolean(stepnode,
                     HAS_RECORD_DESCRIPTOR_WORD_TAG, false);
             _hostCharset = getTagString(stepnode, HOST_CHARSET_TAG,
-                    CobolToPdi.getDefaultHostCharset());
+                    Cob2PdiFields.getDefaultHostCharset());
 
             _isFromCobolSource = getTagBoolean(stepnode, IS_FROM_COBOL_SOURCE,
                     true);
@@ -680,7 +680,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
     public void getFields(RowMetaInterface rowMeta, String origin,
             RowMetaInterface[] info, StepMeta nextStep, VariableSpace space) {
 
-        CobolToPdi.fieldsToRowMeta(_inputFields, origin, rowMeta);
+        Cob2PdiFields.fieldsToRowMeta(_inputFields, origin, rowMeta);
     }
 
     /*

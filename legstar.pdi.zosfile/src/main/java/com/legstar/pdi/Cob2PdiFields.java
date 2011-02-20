@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
 import com.legstar.coxb.CobolBindingException;
@@ -27,6 +29,7 @@ import com.legstar.coxb.ICobolNationalBinding;
 import com.legstar.coxb.ICobolNumericBinding;
 import com.legstar.coxb.ICobolOctetStreamBinding;
 import com.legstar.coxb.ICobolStringBinding;
+import com.legstar.coxb.host.HostContext;
 import com.legstar.coxb.host.HostException;
 import com.legstar.coxb.impl.reflect.CComplexReflectBinding;
 import com.legstar.coxb.util.BindingUtil;
@@ -46,6 +49,37 @@ public class Cob2PdiFields {
      */
     private Cob2PdiFields() {
 
+    }
+
+    /**
+     * Generates row meta structure from a fields array.
+     * 
+     * @param fields the fields array
+     * @param origin the data origin
+     * @param rowMeta the row meta to generate
+     */
+    public static void fieldsToRowMeta(final CobolFileInputField[] fields,
+            final String origin, final RowMetaInterface rowMeta) {
+
+        rowMeta.clear(); // Start with a clean slate, eats the input
+
+        for (int i = 0; i < fields.length; i++) {
+            CobolFileInputField field = fields[i];
+
+            ValueMetaInterface valueMeta = new ValueMeta(field.getName(),
+                    field.getType());
+            valueMeta.setConversionMask(field.getFormat());
+            valueMeta.setLength(field.getLength());
+            valueMeta.setPrecision(field.getPrecision());
+            valueMeta.setConversionMask(field.getFormat());
+            valueMeta.setDecimalSymbol(field.getDecimalSymbol());
+            valueMeta.setGroupingSymbol(field.getGroupSymbol());
+            valueMeta.setCurrencySymbol(field.getCurrencySymbol());
+            valueMeta.setTrimType(field.getTrimType());
+            valueMeta.setOrigin(origin);
+
+            rowMeta.addValueMeta(valueMeta);
+        }
     }
 
     /**
@@ -331,6 +365,15 @@ public class Cob2PdiFields {
             }
         }
         return false;
+    }
+
+    /**
+     * The default mainframe character set.
+     * 
+     * @return the default mainframe character set
+     */
+    public static String getDefaultHostCharset() {
+        return HostContext.getDefaultHostCharsetName();
     }
 
 }
