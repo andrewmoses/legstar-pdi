@@ -28,9 +28,9 @@ import org.pentaho.di.trans.TransTestFactory;
 
 import com.legstar.coxb.cob2trans.Cob2TransGenerator.Cob2TransResult;
 import com.legstar.coxb.util.ClassUtil;
+import com.legstar.pdi.Cob2Pdi;
 import com.legstar.pdi.Cob2PdiFields;
 import com.legstar.pdi.Cob2PdiTrans;
-import com.legstar.pdi.Cob2Pdi;
 
 /**
  * Tests to run after the package was deployed. Here Kettle should have
@@ -47,8 +47,14 @@ public class ZosFileITCase extends TestCase {
      * 
      * */
     public void setUp() throws KettleException {
+        /* Tells our code where to look for the plugin folder tree. */
         System.setProperty(Cob2Pdi.PLUGIN_FOLDER_PROPERTY, "target/"
                 + Cob2Pdi.DEFAULT_PLUGIN_FOLDER);
+
+        /*
+         * This is important while our plugin is not located where kettle would
+         * discover it.
+         */
         System.setProperty(Const.KETTLE_PLUGIN_CLASSES,
                 "com.legstar.pdi.zosfile.ZosFileInputMeta");
         KettleEnvironment.init();

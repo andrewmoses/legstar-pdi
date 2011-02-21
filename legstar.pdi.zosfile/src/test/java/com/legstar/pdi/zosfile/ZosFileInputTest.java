@@ -12,7 +12,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransTestFactory;
 import org.pentaho.di.trans.TransformationTestCase;
 
-import com.legstar.pdi.AbstractTest;
+import com.legstar.pdi.Cob2Pdi;
 import com.legstar.pdi.Cob2PdiFields;
 
 /**
@@ -24,19 +24,26 @@ public class ZosFileInputTest extends TransformationTestCase {
     /** Current context class loader. */
     private ClassLoader _tccl;
 
-    /**
-     * Put a set of test case jars onto the context class loader.
-     * 
-     * @throws Exception
-     */
-    public void setUp() throws Exception {
+    // /**
+    // * Put a set of test case jars onto the context class loader.
+    // *
+    // * @throws Exception
+    // */
+    // public void setUp() throws Exception {
+    //
+    // _tccl = Thread.currentThread().getContextClassLoader();
+    // AbstractTest.setTestContextClassLoader(_tccl);
+    // }
+    //
+    // public void tearDown() {
+    // Thread.currentThread().setContextClassLoader(_tccl);
+    // }
 
-        _tccl = Thread.currentThread().getContextClassLoader();
-        AbstractTest.setTestContextClassLoader(_tccl);
-    }
+    /** {@inheritDoc} */
+    public void setUp() throws KettleException {
+        /* Tells our code where to look for the plugin folder tree. */
+        System.setProperty(Cob2Pdi.PLUGIN_FOLDER_PROPERTY, "src/test/resources");
 
-    public void tearDown() {
-        Thread.currentThread().setContextClassLoader(_tccl);
     }
 
     public ZosFileInputTest() throws KettleException {
@@ -59,7 +66,7 @@ public class ZosFileInputTest extends TransformationTestCase {
         ZosFileInputMeta zosFileInputMeta = new ZosFileInputMeta();
 
         zosFileInputMeta
-                .setCompositeJaxbClassName("com.legstar.test.coxb.cusdatcc.CustomerData");
+                .setCompositeJaxbClassName("com.legstar.test.coxb.cusdatcc.CustomerData[CUSDATCC.jar]");
         zosFileInputMeta.setFilename("src/test/resources/ZOS.TCOBWVB.ROW1.bin");
 
         zosFileInputMeta.setInputFields(Cob2PdiFields.getCobolFields(
