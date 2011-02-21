@@ -14,7 +14,7 @@ import com.legstar.coxb.util.BindingUtil;
  * Tests for CobolToPdi class.
  * 
  */
-public class CobolToPdiTest extends AbstractTest {
+public class Cob2PdiTest extends AbstractTest {
 
     /**
      * Test calculation of host byte array length.
@@ -23,11 +23,11 @@ public class CobolToPdiTest extends AbstractTest {
         try {
             assertEquals(
                     30,
-                    CobolToPdi.newHostRecord(BindingUtil
+                    Cob2Pdi.newHostRecord(BindingUtil
                             .newTransformers("com.legstar.test.coxb.flat01cc.Flat01Record")).length);
             assertEquals(
                     98,
-                    CobolToPdi.newHostRecord(BindingUtil
+                    Cob2Pdi.newHostRecord(BindingUtil
                             .newTransformers("com.legstar.test.coxb.stru04cc.Stru04Record")).length);
         } catch (KettleException e) {
             e.printStackTrace();
@@ -188,7 +188,7 @@ public class CobolToPdiTest extends AbstractTest {
                 null, outputRowMeta);
 
         HostTransformStatus status = new HostTransformStatus();
-        Object[] outputRowData = CobolToPdi.toOutputRowData(outputRowMeta,
+        Object[] outputRowData = Cob2Pdi.toOutputRowData(outputRowMeta,
                 BindingUtil.newTransformers(qualifiedClassName),
                 HostData.toByteArray(hostPayload),
                 Cob2PdiFields.getDefaultHostCharset(), status);

@@ -30,7 +30,7 @@ import com.legstar.coxb.cob2trans.Cob2TransGenerator.Cob2TransResult;
 import com.legstar.coxb.util.ClassUtil;
 import com.legstar.pdi.Cob2PdiFields;
 import com.legstar.pdi.Cob2PdiTrans;
-import com.legstar.pdi.CobolToPdi;
+import com.legstar.pdi.Cob2Pdi;
 
 /**
  * Tests to run after the package was deployed. Here Kettle should have
@@ -47,8 +47,8 @@ public class ZosFileITCase extends TestCase {
      * 
      * */
     public void setUp() throws KettleException {
-        System.setProperty(CobolToPdi.PLUGIN_FOLDER_PROPERTY, "target/"
-                + CobolToPdi.DEFAULT_PLUGIN_FOLDER);
+        System.setProperty(Cob2Pdi.PLUGIN_FOLDER_PROPERTY, "target/"
+                + Cob2Pdi.DEFAULT_PLUGIN_FOLDER);
         System.setProperty(Const.KETTLE_PLUGIN_CLASSES,
                 "com.legstar.pdi.zosfile.ZosFileInputMeta");
         KettleEnvironment.init();
@@ -74,7 +74,7 @@ public class ZosFileITCase extends TestCase {
                 null, zosFileInputStepName, cobolSource, cobolCharset,
                 cobolSourceFile.getPath(), getCompilerClassPath());
 
-        String compositeJaxbClassName = CobolToPdi.getCompositeJaxbClassName(
+        String compositeJaxbClassName = Cob2Pdi.getCompositeJaxbClassName(
                 ClassUtil.toQualifiedClassName(
                         cob2transResult.coxbgenResult.jaxbPackageName,
                         cob2transResult.coxbgenResult.rootClassNames.get(0)),

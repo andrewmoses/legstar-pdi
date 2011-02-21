@@ -31,21 +31,21 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      * Check if name conflicts are handled correctly.
      */
     public void testNameConflicts() {
-        List<CobolFileInputField> fields = new ArrayList<CobolFileInputField>();
+        List<CobFileInputField> fields = new ArrayList<CobFileInputField>();
         assertEquals("aname",
                 Cob2PdiFields.newName(fields, "aname", null, null));
         assertEquals("aname_0",
                 Cob2PdiFields.newName(fields, "aname", null, "_0"));
         assertEquals("aname_0",
                 Cob2PdiFields.newName(fields, "aname", "parent", "_0"));
-        CobolFileInputField field = new CobolFileInputField();
+        CobFileInputField field = new CobFileInputField();
         field.setName("aname_0");
         fields.add(field);
         assertEquals("aname_0",
                 Cob2PdiFields.newName(fields, "aname", null, "_0"));
         assertEquals("parent_aname_0",
                 Cob2PdiFields.newName(fields, "aname", "parent", "_0"));
-        field = new CobolFileInputField();
+        field = new CobFileInputField();
         field.setName("parent_aname_0");
         fields.add(field);
         assertEquals("parent_aname_0",
@@ -62,7 +62,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      */
     public void testFlat01() throws Exception {
 
-        List<CobolFileInputField> fields = Cob2PdiFields
+        List<CobFileInputField> fields = Cob2PdiFields
                 .toFields("com.legstar.test.coxb.flat01cc.Flat01Record");
         check("flat01", "json", fields.toString());
 
@@ -75,7 +75,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      */
     public void testFlat02() throws Exception {
 
-        List<CobolFileInputField> fields = Cob2PdiFields
+        List<CobFileInputField> fields = Cob2PdiFields
                 .toFields("com.legstar.test.coxb.flat02cc.Flat02Record");
         check("flat02", "json", fields.toString());
 
@@ -88,7 +88,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      */
     public void testStru03() throws Exception {
 
-        List<CobolFileInputField> fields = Cob2PdiFields
+        List<CobFileInputField> fields = Cob2PdiFields
                 .toFields("com.legstar.test.coxb.stru03cc.Stru03Record");
         check("stru03", "json", fields.toString());
 
@@ -101,7 +101,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      */
     public void testStru04() throws Exception {
 
-        List<CobolFileInputField> fields = Cob2PdiFields
+        List<CobFileInputField> fields = Cob2PdiFields
                 .toFields("com.legstar.test.coxb.stru04cc.Stru04Record");
         check("stru04", "json", fields.toString());
 
@@ -114,7 +114,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      */
     public void testStru05() throws Exception {
 
-        List<CobolFileInputField> fields = Cob2PdiFields
+        List<CobFileInputField> fields = Cob2PdiFields
                 .toFields("com.legstar.test.coxb.stru05cc.Stru05Record");
         check("stru05", "json", fields.toString());
 
@@ -127,7 +127,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      */
     public void testRdef01() throws Exception {
 
-        List<CobolFileInputField> fields = Cob2PdiFields
+        List<CobFileInputField> fields = Cob2PdiFields
                 .toFields("com.legstar.test.coxb.rdef01cc.Rdef01Record");
         check("rdef01", "json", fields.toString());
 
@@ -140,7 +140,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      */
     public void testRdef02() throws Exception {
 
-        List<CobolFileInputField> fields = Cob2PdiFields
+        List<CobFileInputField> fields = Cob2PdiFields
                 .toFields("com.legstar.test.coxb.rdef02cc.Rdef02Record");
         check("rdef02", "json", fields.toString());
 
@@ -153,7 +153,7 @@ public class Cob2PdiFieldsTest extends AbstractTest {
      */
     public void testAllTypes() throws Exception {
 
-        List<CobolFileInputField> fields = Cob2PdiFields
+        List<CobFileInputField> fields = Cob2PdiFields
                 .toFields("com.legstar.test.coxb.alltypcc.AlltypesRecord");
         check("alltypcc", "json", fields.toString());
 

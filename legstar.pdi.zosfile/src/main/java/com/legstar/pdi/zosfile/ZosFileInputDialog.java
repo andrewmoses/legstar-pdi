@@ -63,9 +63,9 @@ import org.pentaho.di.ui.trans.dialog.TransPreviewProgressDialog;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
 import com.legstar.pdi.Cob2PdiFields;
-import com.legstar.pdi.CobolFileInputField;
-import com.legstar.pdi.CobolToFieldsProgressDialog;
-import com.legstar.pdi.CobolToPdi;
+import com.legstar.pdi.CobFileInputField;
+import com.legstar.pdi.Cob2FieldsProgressDialog;
+import com.legstar.pdi.Cob2Pdi;
 
 /**
  * A PDI dialog to setup the z/OS File Input step. TODO Add possibility of
@@ -1080,7 +1080,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements
     protected void initCompositeJaxbClassNamesCombo(
             final String compositeJaxbClassName) {
         try {
-            List<String> compositeJaxbClassNames = CobolToPdi
+            List<String> compositeJaxbClassNames = Cob2Pdi
                     .getAvailableCompositeJaxbClassNames();
             if (!Const.isEmpty(compositeJaxbClassNames)) {
                 Collections.sort(compositeJaxbClassNames);
@@ -1287,7 +1287,7 @@ public class ZosFileInputDialog extends BaseStepDialog implements
      */
     protected boolean generateTransformer() {
 
-        CobolToFieldsProgressDialog progressDialog = new CobolToFieldsProgressDialog(
+        Cob2FieldsProgressDialog progressDialog = new Cob2FieldsProgressDialog(
                 wFields.getShell(), wStepname.getText(),
                 wCobolSource.getText(), wCobolCharset.getText(), _cobolFilePath);
 
@@ -1397,11 +1397,11 @@ public class ZosFileInputDialog extends BaseStepDialog implements
         meta.setCobolFilePath(_cobolFilePath);
 
         int nrNonEmptyFields = wFields.nrNonEmpty();
-        meta.setInputFields(new CobolFileInputField[nrNonEmptyFields]);
+        meta.setInputFields(new CobFileInputField[nrNonEmptyFields]);
 
         for (int i = 0; i < nrNonEmptyFields; i++) {
             TableItem item = wFields.getNonEmpty(i);
-            meta.getInputFields()[i] = new CobolFileInputField();
+            meta.getInputFields()[i] = new CobFileInputField();
 
             int colnr = 1;
             meta.getInputFields()[i].setName(item.getText(colnr++));
@@ -1489,10 +1489,10 @@ public class ZosFileInputDialog extends BaseStepDialog implements
      * @param fields the fields meta data
      * 
      */
-    public void setDialogFieldsFromMetaData(final CobolFileInputField[] fields) {
+    public void setDialogFieldsFromMetaData(final CobFileInputField[] fields) {
         wFields.table.removeAll();
         for (int i = 0; i < fields.length; i++) {
-            CobolFileInputField field = fields[i];
+            CobFileInputField field = fields[i];
 
             TableItem item = new TableItem(wFields.table, SWT.NONE);
             int colnr = 1;

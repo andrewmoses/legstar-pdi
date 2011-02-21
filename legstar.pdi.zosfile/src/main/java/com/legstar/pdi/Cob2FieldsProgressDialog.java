@@ -26,7 +26,7 @@ import com.legstar.pdi.zosfile.ZosFileInputDialog;
  * (in which case the list of returned root class names is null).
  * 
  */
-public class CobolToFieldsProgressDialog {
+public class Cob2FieldsProgressDialog {
 
     /** For i18n purposes. */
     private static Class<?> PKG = ZosFileInputDialog.class;
@@ -59,7 +59,7 @@ public class CobolToFieldsProgressDialog {
      * @param cobolCharset COBOL code encoding
      * @param cobolFilePath COBOL file path
      */
-    public CobolToFieldsProgressDialog(final Shell shell,
+    public Cob2FieldsProgressDialog(final Shell shell,
             final String stepName, final String cobolCode,
             final String cobolCharset, final String cobolFilePath) {
         _shell = shell;
@@ -93,7 +93,7 @@ public class CobolToFieldsProgressDialog {
                     _compositeJaxbClassNames = new ArrayList<String>();
                     for (String rootClassName : result.coxbgenResult.rootClassNames) {
                         _compositeJaxbClassNames
-                                .add(CobolToPdi.getCompositeJaxbClassName(
+                                .add(Cob2Pdi.getCompositeJaxbClassName(
                                         ClassUtil
                                                 .toQualifiedClassName(
                                                         result.coxbgenResult.jaxbPackageName,

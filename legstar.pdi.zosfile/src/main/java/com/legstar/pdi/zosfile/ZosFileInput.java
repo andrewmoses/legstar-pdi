@@ -14,7 +14,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.step.*;
 
 import com.legstar.coxb.transform.HostTransformStatus;
-import com.legstar.pdi.CobolToPdi;
+import com.legstar.pdi.Cob2Pdi;
 import com.legstar.pdi.ZosFileInputStreamFactory;
 
 
@@ -117,14 +117,14 @@ public class ZosFileInput extends BaseStep implements StepInterface {
 
             ClassLoader tccl = Thread.currentThread().getContextClassLoader();
             try {
-                CobolToPdi.setTransformerClassLoader(getClass(),
-                        CobolToPdi.getJarFileName(data.compositeJaxbClassName));
-                data.tf = CobolToPdi.newTransformers(
-                        CobolToPdi
+                Cob2Pdi.setTransformerClassLoader(getClass(),
+                        Cob2Pdi.getJarFileName(data.compositeJaxbClassName));
+                data.tf = Cob2Pdi.newTransformers(
+                        Cob2Pdi
                                 .getJaxbClassName(data.compositeJaxbClassName));
                 data.fis = ZosFileInputStreamFactory.create(meta, new File(
                         data.filename));
-                data.hostRecord = CobolToPdi.newHostRecord(data.tf);
+                data.hostRecord = Cob2Pdi.newHostRecord(data.tf);
                 data.hostCharset = meta.getHostCharset();
                 data.status = new HostTransformStatus();
             } catch (FileNotFoundException e) {
@@ -144,7 +144,7 @@ public class ZosFileInput extends BaseStep implements StepInterface {
                     data.status.getHostBytesProcessed());
 
             if (count > 0) {
-                Object[] outputRowData = CobolToPdi.toOutputRowData(
+                Object[] outputRowData = Cob2Pdi.toOutputRowData(
                         data.outputRowMeta,
                         data.tf,
                         data.hostRecord,

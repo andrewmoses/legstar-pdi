@@ -58,13 +58,13 @@ public class Cob2PdiFields {
      * @param origin the data origin
      * @param rowMeta the row meta to generate
      */
-    public static void fieldsToRowMeta(final CobolFileInputField[] fields,
+    public static void fieldsToRowMeta(final CobFileInputField[] fields,
             final String origin, final RowMetaInterface rowMeta) {
 
         rowMeta.clear(); // Start with a clean slate, eats the input
 
         for (int i = 0; i < fields.length; i++) {
-            CobolFileInputField field = fields[i];
+            CobFileInputField field = fields[i];
 
             ValueMetaInterface valueMeta = new ValueMeta(field.getName(),
                     field.getType());
@@ -98,17 +98,17 @@ public class Cob2PdiFields {
      * @throws KettleException if failed to get the COBOL structure info from
      *         JAXB
      */
-    public static CobolFileInputField[] getCobolFields(
+    public static CobFileInputField[] getCobolFields(
             final String compositeJaxbClassName, final Class<?> clazz)
             throws KettleException {
 
         ClassLoader tccl = Thread.currentThread().getContextClassLoader();
         try {
-            CobolToPdi.setTransformerClassLoader(clazz,
-                    CobolToPdi.getJarFileName(compositeJaxbClassName));
-            List<CobolFileInputField> fields = toFields(CobolToPdi
+            Cob2Pdi.setTransformerClassLoader(clazz,
+                    Cob2Pdi.getJarFileName(compositeJaxbClassName));
+            List<CobFileInputField> fields = toFields(Cob2Pdi
                     .getJaxbClassName(compositeJaxbClassName));
-            return fields.toArray(new CobolFileInputField[fields.size()]);
+            return fields.toArray(new CobFileInputField[fields.size()]);
         } finally {
             Thread.currentThread().setContextClassLoader(tccl);
         }
@@ -126,7 +126,7 @@ public class Cob2PdiFields {
      * @throws KettleException if failed to get the COBOL structure info from
      *         JAXB
      */
-    public static List<CobolFileInputField> toFields(
+    public static List<CobFileInputField> toFields(
             final String jaxbQualifiedClassName) throws KettleException {
         try {
             ClassName className = ClassUtil.toClassName(jaxbQualifiedClassName);
@@ -154,14 +154,14 @@ public class Cob2PdiFields {
      * @throws KettleException if failed to get the COBOL structure info from
      *         JAXB
      */
-    public static List<CobolFileInputField> toFields(
+    public static List<CobFileInputField> toFields(
             final Object jaxbObjectFactory, final Object jaxbObject)
             throws KettleException {
 
         try {
             CComplexReflectBinding root = new CComplexReflectBinding(
                     jaxbObjectFactory, jaxbObject);
-            List<CobolFileInputField> fields = new ArrayList<CobolFileInputField>();
+            List<CobFileInputField> fields = new ArrayList<CobFileInputField>();
             toFields(fields, root, null, null, false);
             return fields;
         } catch (HostException e) {
@@ -189,7 +189,7 @@ public class Cob2PdiFields {
      * @param redefined true if this field is in a redefined sub-structure
      * @throws HostException if COBOL introspection fails
      */
-    public static void toFields(final List<CobolFileInputField> fields,
+    public static void toFields(final List<CobFileInputField> fields,
             final ICobolBinding binding, final String prefix,
             final String suffix, final boolean redefined) throws HostException {
 
@@ -240,12 +240,12 @@ public class Cob2PdiFields {
      * @param redefined true if this field is in a redefined sub-structure
      * @return a PDI field
      */
-    public static CobolFileInputField toField(
-            final List<CobolFileInputField> fields,
+    public static CobFileInputField toField(
+            final List<CobFileInputField> fields,
             final ICobolBinding binding, final String prefix,
             final String suffix, final boolean redefined) {
 
-        CobolFileInputField field = new CobolFileInputField();
+        CobFileInputField field = new CobFileInputField();
         field.setName(newName(fields, binding.getBindingName(), prefix, suffix));
 
         if (binding instanceof ICobolNumericBinding
@@ -328,7 +328,7 @@ public class Cob2PdiFields {
      * @param suffix an optional suffix (array items)
      * @return a unique name for a column
      */
-    protected static String newName(final List<CobolFileInputField> fields,
+    protected static String newName(final List<CobFileInputField> fields,
             final String bindingName, final String prefix, final String suffix) {
 
         // Always add suffix if any (array item number)
@@ -358,8 +358,8 @@ public class Cob2PdiFields {
      * @return true if name already used
      */
     protected static boolean nameConflict(final String name,
-            final List<CobolFileInputField> fields) {
-        for (CobolFileInputField field : fields) {
+            final List<CobFileInputField> fields) {
+        for (CobFileInputField field : fields) {
             if (field.getName().equals(name)) {
                 return true;
             }

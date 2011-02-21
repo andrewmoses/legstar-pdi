@@ -8,7 +8,7 @@ import org.pentaho.di.trans.steps.textfileinput.TextFileInputField;
  * redefines.
  * 
  */
-public class CobolFileInputField extends TextFileInputField {
+public class CobFileInputField extends TextFileInputField {
 
     /** If the field is redefined. */
     private boolean _redefined;

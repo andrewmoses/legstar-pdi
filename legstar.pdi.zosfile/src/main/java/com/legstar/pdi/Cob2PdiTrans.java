@@ -62,7 +62,7 @@ public class Cob2PdiTrans {
             final String cobolSource, final String cobolCharset,
             final String cobolFilePath) throws Cob2TransException {
         return generateTransformer(monitor, stepName, cobolSource,
-                cobolCharset, cobolFilePath, CobolToPdi.getLibClassPath());
+                cobolCharset, cobolFilePath, Cob2Pdi.getLibClassPath());
 
     }
 
@@ -116,7 +116,7 @@ public class Cob2PdiTrans {
 
             // Deploy the jar to the user folder
             FileUtils.copyFileToDirectory(result.jarFile,
-                    new File(CobolToPdi.getPluginUserLocation()));
+                    new File(Cob2Pdi.getPluginUserLocation()));
 
             return result;
         } catch (IOException e) {
@@ -243,9 +243,9 @@ public class Cob2PdiTrans {
      * @throws Cob2TransException if configuration file missing or file corrupt
      */
     public static Cob2TransModel getCob2TransModel() throws Cob2TransException {
-        File configFile = (CobolToPdi.getPluginConfLocation() == null) ? null
-                : new File(CobolToPdi.getPluginConfLocation() + '/'
-                        + CobolToPdi.CONF_FILE_NAME);
+        File configFile = (Cob2Pdi.getPluginConfLocation() == null) ? null
+                : new File(Cob2Pdi.getPluginConfLocation() + '/'
+                        + Cob2Pdi.CONF_FILE_NAME);
         return getCob2TransModel(configFile);
     }
 

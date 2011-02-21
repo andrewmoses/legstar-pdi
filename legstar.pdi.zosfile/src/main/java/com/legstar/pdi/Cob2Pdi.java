@@ -35,7 +35,7 @@ import com.legstar.coxb.util.BindingUtil;
  * specific code into the step code.
  * 
  */
-public class CobolToPdi {
+public class Cob2Pdi {
 
     /** An identifier for our lib class loader. */
     public static final String LIB_CLASSLOADER_NAME = "legstar.pdi.lib";
@@ -64,7 +64,7 @@ public class CobolToPdi {
     /**
      * Utility class. No instantiation.
      */
-    private CobolToPdi() {
+    private Cob2Pdi() {
 
     }
 
@@ -257,7 +257,7 @@ public class CobolToPdi {
      * @return a classpath built with jars from the user lib folder
      */
     public static String getLibClassPath() {
-        return getClasspath(CobolToPdi.getPluginLibLocation());
+        return getClasspath(Cob2Pdi.getPluginLibLocation());
     }
 
     /**

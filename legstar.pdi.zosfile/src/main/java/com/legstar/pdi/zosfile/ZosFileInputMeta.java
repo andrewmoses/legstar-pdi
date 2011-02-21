@@ -33,7 +33,7 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import org.w3c.dom.Node;
 
 import com.legstar.pdi.Cob2PdiFields;
-import com.legstar.pdi.CobolFileInputField;
+import com.legstar.pdi.CobFileInputField;
 
 /**
  * This is a Kettle step implementation class. Acts as a model and knows how to
@@ -135,7 +135,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
     private String _cobolFilePath;
 
     /** Fields from a z/OS file record. */
-    private CobolFileInputField[] _inputFields;
+    private CobFileInputField[] _inputFields;
 
     public ZosFileInputMeta() {
         super();
@@ -292,14 +292,14 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
     /**
      * @return the inputFields
      */
-    public CobolFileInputField[] getInputFields() {
+    public CobFileInputField[] getInputFields() {
         return _inputFields;
     }
 
     /**
      * @param inputFields the inputFields to set
      */
-    public void setInputFields(CobolFileInputField[] inputFields) {
+    public void setInputFields(CobFileInputField[] inputFields) {
         _inputFields = inputFields;
     }
 
@@ -309,7 +309,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
      * ------------------------------------------------------------------------
      */
     public void setDefault() {
-        _inputFields = new CobolFileInputField[0];
+        _inputFields = new CobFileInputField[0];
         _hostCharset = Cob2PdiFields.getDefaultHostCharset();
         _isFromCobolSource = true;
         _cobolCharset = Charset.defaultCharset().name();
@@ -339,7 +339,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
         retval.append("    <fields>").append(Const.CR);
         for (int i = 0; i < _inputFields.length; i++) {
-            CobolFileInputField field = _inputFields[i];
+            CobFileInputField field = _inputFields[i];
 
             retval.append("      <field>").append(Const.CR);
             addTagValue(retval, FIELD_NAME_TAG, field.getName());
@@ -451,9 +451,9 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
             Node fields = XMLHandler.getSubNode(stepnode, "fields");
             int nFields = XMLHandler.countNodes(fields, "field");
 
-            _inputFields = new CobolFileInputField[nFields];
+            _inputFields = new CobFileInputField[nFields];
             for (int i = 0; i < nFields; i++) {
-                _inputFields[i] = new CobolFileInputField();
+                _inputFields[i] = new CobFileInputField();
 
                 Node fnode = XMLHandler.getSubNodeByNr(fields, "field", i);
 
@@ -596,10 +596,10 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
 
             int nFields = rep.countNrStepAttributes(id_step, "field_"
                     + FIELD_NAME_TAG);
-            _inputFields = new CobolFileInputField[nFields];
+            _inputFields = new CobFileInputField[nFields];
 
             for (int i = 0; i < nFields; i++) {
-                _inputFields[i] = new CobolFileInputField();
+                _inputFields[i] = new CobFileInputField();
 
                 _inputFields[i].setName(rep.getStepAttributeString(id_step, i,
                         "field_" + FIELD_NAME_TAG));
@@ -647,7 +647,7 @@ public class ZosFileInputMeta extends BaseStepMeta implements StepMetaInterface 
                     COBOL_FILE_PATH_TAG, _cobolFilePath);
 
             for (int i = 0; i < _inputFields.length; i++) {
-                CobolFileInputField field = _inputFields[i];
+                CobFileInputField field = _inputFields[i];
 
                 rep.saveStepAttribute(id_transformation, id_step, i, "field_"
                         + FIELD_NAME_TAG, field.getName());

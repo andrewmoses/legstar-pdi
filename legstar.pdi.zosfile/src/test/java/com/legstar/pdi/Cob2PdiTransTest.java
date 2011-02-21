@@ -17,7 +17,7 @@ public class Cob2PdiTransTest extends AbstractTest {
      * Fake a plugin location with a conf folder.
      */
     public void setUp() {
-        System.setProperty(CobolToPdi.PLUGIN_FOLDER_PROPERTY,
+        System.setProperty(Cob2Pdi.PLUGIN_FOLDER_PROPERTY,
                 "src/main/resources");
     }
 
@@ -30,7 +30,7 @@ public class Cob2PdiTransTest extends AbstractTest {
         Cob2TransResult results = Cob2PdiTrans
                 .generateTransformer(null, "flat01", FileUtils
                         .readFileToString(new File(COPYBOOKS_DIR, "FLAT01CC")),
-                        COPYBOOKS_ENC, "FLAT01CC", CobolToPdi
+                        COPYBOOKS_ENC, "FLAT01CC", Cob2Pdi
                                 .getClasspath("target/dependency"));
         assertNotNull(results.jarFile.getPath());
         JarFile jarFile = new JarFile(results.jarFile);

@@ -62,7 +62,7 @@ public abstract class AbstractTest extends TestCase {
      */
     public static void setTestContextClassLoader(final ClassLoader parentCl)
             throws Exception {
-        String[] jarFileNames = CobolToPdi.getClasspath(
+        String[] jarFileNames = Cob2Pdi.getClasspath(
                 "src/test/resources/jars").split(";");
         URL[] jarFileUrls = new URL[jarFileNames.length];
         for (int i = 0; i < jarFileNames.length; i++) {
