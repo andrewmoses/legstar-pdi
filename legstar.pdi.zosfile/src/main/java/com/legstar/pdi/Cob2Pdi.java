@@ -22,11 +22,11 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.scannotation.AnnotationDB;
 
 import com.legstar.coxb.CobolBindingException;
+import com.legstar.coxb.ICobolComplexBinding;
 import com.legstar.coxb.convert.simple.CobolSimpleConverters;
 import com.legstar.coxb.host.HostException;
 import com.legstar.coxb.impl.visitor.FlatCobolUnmarshalVisitor;
 import com.legstar.coxb.transform.HostTransformStatus;
-import com.legstar.coxb.transform.IHostTransformers;
 import com.legstar.coxb.util.BindingUtil;
 
 /**
@@ -74,27 +74,39 @@ public class Cob2Pdi {
      * ------------------------------------------------------------------------
      */
     /**
-     * Create an instance of Transformers for a given JAXB root class name.
+     * Create an instance of COBOL binding for a given JAXB root class name.
      * Assumes binding classes were generated for this JAXB class.
      * 
      * @param jaxbQualifiedClassName the JAXB class name
-     * @return a new instance of Transformers
-     * @throws KettleException if transformers cannot be created
+     * @return a new instance of the COBOL binding class
+     * @throws KettleException if bindings cannot be created
      */
-    public static IHostTransformers newTransformers(
+    public static ICobolComplexBinding newCobolBinding(
             final String jaxbQualifiedClassName) throws KettleException {
         try {
-            return BindingUtil.newTransformers(jaxbQualifiedClassName);
+            return BindingUtil.newTransformers(jaxbQualifiedClassName)
+                    .getHostToJava().newBinding();
         } catch (CobolBindingException e) {
             throw new KettleException(e);
         }
     }
 
     /**
+     * Allocates a byte array large enough to accommodate the largest host
+     * record.
+     * 
+     * @param cobolBinding the COBOL binding for the record
+     * @return a byte array large enough for the largest record
+     */
+    public static byte[] newHostRecord(final ICobolComplexBinding cobolBinding) {
+        return new byte[cobolBinding.getByteLength()];
+    }
+
+    /**
      * Creates a PDI output row from host data.
      * 
      * @param outputRowMeta the output row meta data.
-     * @param tf a host transformer
+     * @param cobolBinding COBOL binding for the row
      * @param hostRecord the host data
      * @param hostCharset the host character set
      * @param status additional info on the COBOL to Java transformation process
@@ -102,18 +114,19 @@ public class Cob2Pdi {
      * @throws KettleException if transformation fails
      */
     public static Object[] toOutputRowData(
-            final RowMetaInterface outputRowMeta, final IHostTransformers tf,
-            final byte[] hostRecord, final String hostCharset,
-            final HostTransformStatus status) throws KettleException {
+            final RowMetaInterface outputRowMeta,
+            final ICobolComplexBinding cobolBinding, final byte[] hostRecord,
+            final String hostCharset, final HostTransformStatus status)
+            throws KettleException {
         try {
             int expectedOutputRows = outputRowMeta.getFieldNames().length;
             FlatCobolUnmarshalVisitor cev = new FlatCobolUnmarshalVisitor(
                     hostRecord, 0, new CobolSimpleConverters());
-            tf.getHostToJava().newBinding().accept(cev);
+            cobolBinding.accept(cev);
             status.setHostBytesProcessed(cev.getOffset());
 
             List<Object> objects = new ArrayList<Object>();
-            objects.addAll(cev.getKeyValues().values());
+            addValues(objects, cev.getKeyValues().values());
 
             /*
              * PDI does not support variable size arrays. Need to fill all
@@ -133,20 +146,23 @@ public class Cob2Pdi {
     }
 
     /**
-     * Allocates a byte array large enough to accommodate the largest host
-     * record.
+     * There are slight differences between PDI and LegStar object types that we
+     * resolve here.
      * 
-     * @param transformers the host transformer set
-     * @return a byte array large enough for the largest record
-     * @throws KettleFileException if byte array cannot be allocated
+     * @param objects the PDI objects
+     * @param values the LegStar values
      */
-    public static byte[] newHostRecord(final IHostTransformers transformers)
-            throws KettleFileException {
-        try {
-            return new byte[transformers.getJavaToHost().getByteLength()];
-        } catch (CobolBindingException e) {
-            throw new KettleFileException(e);
+    public static void addValues(List<Object> objects, Collection<Object> values) {
+        for (Object value : values) {
+            if (value instanceof Short) {
+                objects.add(new Long((Short) value));
+            } else if (value instanceof Integer) {
+                objects.add(new Long((Integer) value));
+            } else {
+                objects.add(value);
+            }
         }
+
     }
 
     /*

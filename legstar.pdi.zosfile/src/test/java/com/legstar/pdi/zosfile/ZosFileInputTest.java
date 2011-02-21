@@ -1,10 +1,14 @@
 package com.legstar.pdi.zosfile;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMeta;
 import org.pentaho.di.core.variables.Variables;
@@ -12,38 +16,24 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransTestFactory;
 import org.pentaho.di.trans.TransformationTestCase;
 
+import com.legstar.coxb.host.HostData;
 import com.legstar.pdi.Cob2Pdi;
 import com.legstar.pdi.Cob2PdiFields;
+import com.legstar.pdi.CobFileInputField;
 
 /**
  * Test the step execution headless (without the dialog).
- * 
+ * <p/>
+ * Initialize meta data as the dialog would have done and then run the step. The
+ * PDI test framework automatically creates a transformation where our step is
+ * followed by a dummy step.
  */
 public class ZosFileInputTest extends TransformationTestCase {
-
-    /** Current context class loader. */
-    private ClassLoader _tccl;
-
-    // /**
-    // * Put a set of test case jars onto the context class loader.
-    // *
-    // * @throws Exception
-    // */
-    // public void setUp() throws Exception {
-    //
-    // _tccl = Thread.currentThread().getContextClassLoader();
-    // AbstractTest.setTestContextClassLoader(_tccl);
-    // }
-    //
-    // public void tearDown() {
-    // Thread.currentThread().setContextClassLoader(_tccl);
-    // }
 
     /** {@inheritDoc} */
     public void setUp() throws KettleException {
         /* Tells our code where to look for the plugin folder tree. */
         System.setProperty(Cob2Pdi.PLUGIN_FOLDER_PROPERTY, "src/test/resources");
-
     }
 
     public ZosFileInputTest() throws KettleException {
@@ -55,19 +45,61 @@ public class ZosFileInputTest extends TransformationTestCase {
     }
 
     /**
+     * Test FLAT01.
+     * 
+     * @throws Exception if execution fails
+     */
+    public void testFlat01() throws Exception {
+        transform("zosfileinput",
+                "com.legstar.test.coxb.flat01cc.Flat01Record[FLAT01CC.jar]",
+                "F0F0F0F0F4F3D5C1D4C5F0F0F0F0F4F3404040404040404040400215000F",
+                new Object[][] { { new Long(43), "NAME000043",
+                        new BigDecimal("2150.00") } });
+    }
+
+    /**
+     * Test CUSDATCC.
+     * 
+     * @throws Exception if execution fails
+     */
+    public void testCustomerData() throws Exception {
+        transform(
+                "zosfileinput",
+                "com.legstar.test.coxb.cusdatcc.CustomerData[CUSDATCC.jar]",
+                "F0F0F0F0F0F1D1D6C8D540E2D4C9E3C840404040404040404040C3C1D4C2D9C9C4C7C540E4D5C9E5C5D9E2C9E3E8F4F4F0F1F2F5F6F500000002F1F061F0F461F1F1000000000023556C5C5C5C5C5C5C5C5C5CF1F061F0F461F1F1000000000023556C5C5C5C5C5C5C5C5C5C",
+                new Object[][] { { new Long(1), "JOHN SMITH",
+                        "CAMBRIDGE UNIVERSITY", "44012565", new Long(2),
+                        "10/04/11", new BigDecimal("235.56"), "*********",
+                        "10/04/11", new BigDecimal("235.56"), "*********" } });
+    }
+
+    /**
+     * Test RDEF01.
+     * 
+     * @throws Exception if execution fails
+     */
+    public void testRdef01() throws Exception {
+        transform("zosfileinput",
+                "com.legstar.test.coxb.rdef01cc.Rdef01Record[RDEF01CC.jar]",
+                "00010250000F40404040404000010260000F404040404040",
+                new Object[][] { { new Long("1"), new BigDecimal("2500.00") },
+                        { new Long("1"), new BigDecimal("2600.00") } });
+    }
+
+    /**
      * Initialize meta data as the dialog would have done and then run the step.
      * The PDI test framework automatically creates a transformation where our
      * step is followed by a dummy step.
      * 
      * @throws Exception if execution fails
      */
-    public void testCustomerData() throws Exception {
-        String stepName = "zosfileinput";
+    protected void transform(final String stepName,
+            final String compositeJaxbClassName, final String hexRecord,
+            final Object[][] resultData) throws Exception {
         ZosFileInputMeta zosFileInputMeta = new ZosFileInputMeta();
 
-        zosFileInputMeta
-                .setCompositeJaxbClassName("com.legstar.test.coxb.cusdatcc.CustomerData[CUSDATCC.jar]");
-        zosFileInputMeta.setFilename("src/test/resources/ZOS.TCOBWVB.ROW1.bin");
+        zosFileInputMeta.setCompositeJaxbClassName(compositeJaxbClassName);
+        zosFileInputMeta.setFilename(writeToTempBinFile(hexRecord));
 
         zosFileInputMeta.setInputFields(Cob2PdiFields.getCobolFields(
                 zosFileInputMeta.getCompositeJaxbClassName(), getClass()));
@@ -80,7 +112,41 @@ public class ZosFileInputTest extends TransformationTestCase {
                         TransTestFactory.INJECTOR_STEPNAME, stepName,
                         TransTestFactory.DUMMY_STEPNAME, createSourceData());
 
-        checkRows(createResultData(), result);
+        checkRows(
+                createResultData(stepName, zosFileInputMeta.getInputFields(),
+                        resultData), result);
+    }
+
+    /**
+     * Turns a hex content into a single record file for testing.
+     * 
+     * @param hexContent the hex content
+     * @return a file name holding a record
+     * @throws IOException if writing fails
+     */
+    protected String writeToTempBinFile(final String hexContent)
+            throws IOException {
+        File tempFile = File.createTempFile(this.getName(), ".tmp");
+        tempFile.deleteOnExit();
+        FileUtils.writeByteArrayToFile(tempFile,
+                HostData.toByteArray(hexContent));
+        return tempFile.getAbsolutePath();
+
+    }
+
+    /**
+     * Create a row of expected results.
+     * 
+     * @param stepName the step name
+     * @param fileFields the file record fields
+     * @param resultData the expected result data (one or more rows)
+     * 
+     * @return the expected row and data results
+     */
+    public List<RowMetaAndData> createResultData(final String stepName,
+            final CobFileInputField[] fileFields, final Object[][] resultData) {
+        return createData(createResultRowMetaInterface(stepName, fileFields),
+                resultData);
     }
 
     /**
@@ -88,7 +154,7 @@ public class ZosFileInputTest extends TransformationTestCase {
      * 
      * @return row meta and data for the injector step
      */
-    public List<RowMetaAndData> createSourceData() {
+    protected List<RowMetaAndData> createSourceData() {
         return createData(createSourceRowMetaInterface(),
                 new Object[][] { new Object[] { "abc" } });
     }
@@ -98,51 +164,24 @@ public class ZosFileInputTest extends TransformationTestCase {
      * 
      * @return meta data for the injector
      */
-    public RowMetaInterface createSourceRowMetaInterface() {
+    protected RowMetaInterface createSourceRowMetaInterface() {
         return createRowMetaInterface(new ValueMeta("field1",
                 ValueMeta.TYPE_STRING));
     }
 
     /**
-     * Create a row of expected results.
-     * 
-     * @return the expected row and data results
-     */
-    public List<RowMetaAndData> createResultData() {
-        return createData(createResultRowMetaInterface(),
-                new Object[][] { new Object[] { new Long(1), "JOHN SMITH",
-                        "CAMBRIDGE UNIVERSITY", "44012565", new Long(2),
-                        "10/04/11", new BigDecimal("235.56"), "*********",
-                        "10/04/11", new BigDecimal("235.56"), "*********" } });
-    }
-
-    /**
      * Create the expected meta data.
+     * 
+     * @param stepName the step name
+     * @param fileFields the file fields
      * 
      * @return the expected meta data
      */
-    public RowMetaInterface createResultRowMetaInterface() {
-        RowMetaInterface rm = createRowMetaInterface(new ValueMeta(
-                "CustomerId", ValueMeta.TYPE_INTEGER), new ValueMeta(
-                "CustomerName", ValueMeta.TYPE_STRING), new ValueMeta(
-                "CustomerAddress", ValueMeta.TYPE_STRING), new ValueMeta(
-                "CustomerPhone", ValueMeta.TYPE_STRING), new ValueMeta(
-                "TransactionNbr", ValueMeta.TYPE_INTEGER), new ValueMeta(
-                "TransactionDate_0", ValueMeta.TYPE_STRING), new ValueMeta(
-                "TransactionAmount_0", ValueMeta.TYPE_BIGNUMBER),
-                new ValueMeta("TransactionComment_0", ValueMeta.TYPE_STRING),
-                new ValueMeta("TransactionDate_1", ValueMeta.TYPE_STRING),
-                new ValueMeta("TransactionAmount_1", ValueMeta.TYPE_BIGNUMBER),
-                new ValueMeta("TransactionComment_1", ValueMeta.TYPE_STRING),
-                new ValueMeta("TransactionDate_2", ValueMeta.TYPE_STRING),
-                new ValueMeta("TransactionAmount_2", ValueMeta.TYPE_BIGNUMBER),
-                new ValueMeta("TransactionComment_2", ValueMeta.TYPE_STRING),
-                new ValueMeta("TransactionDate_3", ValueMeta.TYPE_STRING),
-                new ValueMeta("TransactionAmount_3", ValueMeta.TYPE_BIGNUMBER),
-                new ValueMeta("TransactionComment_3", ValueMeta.TYPE_STRING),
-                new ValueMeta("TransactionDate_4", ValueMeta.TYPE_STRING),
-                new ValueMeta("TransactionAmount_4", ValueMeta.TYPE_BIGNUMBER),
-                new ValueMeta("TransactionComment_4", ValueMeta.TYPE_STRING));
-        return rm;
+    protected RowMetaInterface createResultRowMetaInterface(
+            final String stepName, final CobFileInputField[] fileFields) {
+        RowMetaInterface outputRowMeta = new RowMeta();
+        Cob2PdiFields.fieldsToRowMeta(fileFields, stepName, outputRowMeta);
+        return outputRowMeta;
+
     }
 }

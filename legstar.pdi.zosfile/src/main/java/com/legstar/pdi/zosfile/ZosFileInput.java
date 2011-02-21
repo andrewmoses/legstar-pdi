@@ -4,63 +4,62 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.Trans;
 import org.pentaho.di.trans.TransMeta;
-import org.pentaho.di.trans.step.*;
+import org.pentaho.di.trans.step.BaseStep;
+import org.pentaho.di.trans.step.StepDataInterface;
+import org.pentaho.di.trans.step.StepInterface;
+import org.pentaho.di.trans.step.StepMeta;
+import org.pentaho.di.trans.step.StepMetaInterface;
 
 import com.legstar.coxb.transform.HostTransformStatus;
 import com.legstar.pdi.Cob2Pdi;
 import com.legstar.pdi.ZosFileInputStreamFactory;
 
-
 /**
- * This is the actual processing for a given row.
- * We read an input file and transform to java in order to populate output row fields.
- * TODO add multiple input files support
- * TODO add parallel processing
+ * This is the actual processing for a given row. We read an input file and
+ * transform to java in order to populate output row fields. TODO add multiple
+ * input files support TODO add parallel processing
  */
 public class ZosFileInput extends BaseStep implements StepInterface {
 
     /** For i18n purposes. */
-	private static Class<?> PKG = ZosFileInput.class;
-	
-	/** Step per-thread data. */
-	private ZosFileInputData data;
+    private static Class<?> PKG = ZosFileInput.class;
 
-	/** Step meta-data. */
-	private ZosFileInputMeta meta;
-	
+    /** Step per-thread data. */
+    private ZosFileInputData data;
+
+    /** Step meta-data. */
+    private ZosFileInputMeta meta;
+
     /**
      * Creates an instance of the runtime processor.
      * 
      * @param stepMeta The StepMeta object to run.
      * @param stepDataInterface the data object to store temporary data,
-     *            database connections, caches, result sets,
-     *            hashtables etc.
+     *        database connections, caches, result sets, hashtables etc.
      * @param copyNr The copynumber for this step.
      * @param transMeta The TransInfo of which the step stepMeta is part of.
      * @param trans The (running) transformation to obtain information shared
-     *            among the steps.
+     *        among the steps.
      */
     public ZosFileInput(StepMeta stepMeta, StepDataInterface stepDataInterface,
-            int copyNr,
-            TransMeta transMeta, Trans trans) {
+            int copyNr, TransMeta transMeta, Trans trans) {
         super(stepMeta, stepDataInterface, copyNr, transMeta, trans);
     }
 
-	/**
-	 * Step is initialized.
-	 * Sanity checks the parameters.
-	 * @param smi Step meta 
-	 * @param sdi Step data
-	 * @return false if anything goes wrong
-	 */
-	public boolean init(StepMetaInterface smi, StepDataInterface sdi) {
+    /**
+     * Step is initialized. Sanity checks the parameters.
+     * 
+     * @param smi Step meta
+     * @param sdi Step data
+     * @return false if anything goes wrong
+     */
+    public boolean init(StepMetaInterface smi, StepDataInterface sdi) {
         meta = (ZosFileInputMeta) smi;
         data = (ZosFileInputData) sdi;
 
@@ -82,23 +81,26 @@ public class ZosFileInput extends BaseStep implements StepInterface {
         }
 
         logBasic(BaseMessages.getString(PKG,
-                "ZosFileInput.UsingJAXBClass.Message", data.compositeJaxbClassName));
+                "ZosFileInput.UsingJAXBClass.Message",
+                data.compositeJaxbClassName));
 
         return super.init(smi, sdi);
-	}
+    }
 
     /**
-     * Process a single row (this is repeated for all rows on input).
-     * On the first row, we do the following:
+     * Process a single row (this is repeated for all rows on input). On the
+     * first row, we do the following:
      * <ul>
      * <li>Setup a class loader that contains the Transformer jar file</li>
      * <li>Use this class loader to create a new instance of the transformer</li>
      * <li>The transformer will be reused for all subsequent rows</li>
      * <li>Open the zos file</li>
+     * <li>Process the first row (classloader will find custom code if needed)</li>
+     * <li>Restore the context class loader to avoid interference with PDI</li>
      * </ul>
      * Here we also keep track of how many bytes from the file record were
-     * actually consumed by the transformers. This allows the leftover to
-     * be processed on the next call to this method.
+     * actually consumed by the transformers. This allows the leftover to be
+     * processed on the next call to this method.
      * 
      * @param smi Step meta
      * @param sdi Step data
@@ -119,25 +121,30 @@ public class ZosFileInput extends BaseStep implements StepInterface {
             try {
                 Cob2Pdi.setTransformerClassLoader(getClass(),
                         Cob2Pdi.getJarFileName(data.compositeJaxbClassName));
-                data.tf = Cob2Pdi.newTransformers(
-                        Cob2Pdi
-                                .getJaxbClassName(data.compositeJaxbClassName));
+                data.cobolBinding = Cob2Pdi.newCobolBinding(Cob2Pdi
+                        .getJaxbClassName(data.compositeJaxbClassName));
                 data.fis = ZosFileInputStreamFactory.create(meta, new File(
                         data.filename));
-                data.hostRecord = Cob2Pdi.newHostRecord(data.tf);
+                data.hostRecord = Cob2Pdi.newHostRecord(data.cobolBinding);
                 data.hostCharset = meta.getHostCharset();
                 data.status = new HostTransformStatus();
+                logBasic(BaseMessages.getString(PKG,
+                        "ZosFileInput.FileOpened.Message", data.filename));
+
+                return processRow();
+
             } catch (FileNotFoundException e) {
                 throw new KettleException(e);
             } finally {
                 Thread.currentThread().setContextClassLoader(tccl);
             }
 
-            logBasic(BaseMessages.getString(PKG,
-                    "ZosFileInput.FileOpened.Message", data.filename));
-
+        } else {
+            return processRow();
         }
+    }
 
+    protected boolean processRow() throws KettleException {
         try {
             // Tell the reader how many bytes we processed last time
             int count = data.fis.read(data.hostRecord,
@@ -145,17 +152,15 @@ public class ZosFileInput extends BaseStep implements StepInterface {
 
             if (count > 0) {
                 Object[] outputRowData = Cob2Pdi.toOutputRowData(
-                        data.outputRowMeta,
-                        data.tf,
-                        data.hostRecord,
-                        data.hostCharset,
-                        data.status);
+                        data.outputRowMeta, data.cobolBinding, data.hostRecord,
+                        data.hostCharset, data.status);
                 putRow(data.outputRowMeta, outputRowData);
                 if (checkFeedback(getLinesRead())) {
                     logBasic(BaseMessages.getString(PKG,
                             "ZosFileInput.LinesRead.Message", getLinesRead(),
                             data.filename));
                 }
+                return true;
 
             } else {
                 setOutputDone();
@@ -164,37 +169,35 @@ public class ZosFileInput extends BaseStep implements StepInterface {
         } catch (IOException e) {
             throw new KettleException(e);
         }
-
-        return true;
     }
 
-	/**
-	 * Step is no longer needed.
-	 * Make sure resources are freed.
-	 * @param smi Step meta 
-	 * @param sdi Step data 
-	 */
-	public void dispose(StepMetaInterface smi, StepDataInterface sdi) {
-		meta = (ZosFileInputMeta) smi;
-		data = (ZosFileInputData) sdi;
-		
-		closeFile();
+    /**
+     * Step is no longer needed. Make sure resources are freed.
+     * 
+     * @param smi Step meta
+     * @param sdi Step data
+     */
+    public void dispose(StepMetaInterface smi, StepDataInterface sdi) {
+        meta = (ZosFileInputMeta) smi;
+        data = (ZosFileInputData) sdi;
 
-		super.dispose(smi, sdi);
-	}
-	
-	/**
-	 * Close the input file.
-	 */
-	public void closeFile() {
-		try {
-			if (data.fis != null) {
-				data.fis.close();
-			}
-		} catch (IOException e) {
-			logError(BaseMessages.getString(PKG,
-					"ZosFileInput.FileCloseError.Message", data.filename), e);
-		}
-	}
-	
+        closeFile();
+
+        super.dispose(smi, sdi);
+    }
+
+    /**
+     * Close the input file.
+     */
+    public void closeFile() {
+        try {
+            if (data.fis != null) {
+                data.fis.close();
+            }
+        } catch (IOException e) {
+            logError(BaseMessages.getString(PKG,
+                    "ZosFileInput.FileCloseError.Message", data.filename), e);
+        }
+    }
+
 }

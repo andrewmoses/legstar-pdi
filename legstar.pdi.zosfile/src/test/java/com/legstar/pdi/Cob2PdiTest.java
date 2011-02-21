@@ -2,7 +2,6 @@ package com.legstar.pdi;
 
 import java.math.BigDecimal;
 
-import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
 
@@ -20,19 +19,18 @@ public class Cob2PdiTest extends AbstractTest {
      * Test calculation of host byte array length.
      */
     public void testHostByteLength() throws Exception {
-        try {
-            assertEquals(
-                    30,
-                    Cob2Pdi.newHostRecord(BindingUtil
-                            .newTransformers("com.legstar.test.coxb.flat01cc.Flat01Record")).length);
-            assertEquals(
-                    98,
-                    Cob2Pdi.newHostRecord(BindingUtil
-                            .newTransformers("com.legstar.test.coxb.stru04cc.Stru04Record")).length);
-        } catch (KettleException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        assertEquals(
+                30,
+                Cob2Pdi.newHostRecord(BindingUtil
+                        .newTransformers(
+                                "com.legstar.test.coxb.flat01cc.Flat01Record")
+                        .getHostToJava().newBinding()).length);
+        assertEquals(
+                98,
+                Cob2Pdi.newHostRecord(BindingUtil
+                        .newTransformers(
+                                "com.legstar.test.coxb.stru04cc.Stru04Record")
+                        .getHostToJava().newBinding()).length);
     }
 
     /**
@@ -44,7 +42,7 @@ public class Cob2PdiTest extends AbstractTest {
 
         Object[] outputRowData = transform(
                 "com.legstar.test.coxb.flat01cc.Flat01Record",
-                "F0F0F0F0F4F3D5C1D4C5F0F0F0F0F4F3404040404040404040400215000FF0",
+                "F0F0F0F0F4F3D5C1D4C5F0F0F0F0F4F3404040404040404040400215000F",
                 30);
         assertEquals(43L, outputRowData[0]);
         assertEquals("NAME000043", outputRowData[1]);
@@ -66,11 +64,11 @@ public class Cob2PdiTest extends AbstractTest {
         assertEquals(62L, outputRowData[0]);
         assertEquals("NAME000062", outputRowData[1]);
         assertEquals(new BigDecimal("3100.00"), outputRowData[2]);
-        assertEquals(new Short("62"), outputRowData[3]);
-        assertEquals(new Short("31"), outputRowData[4]);
-        assertEquals(new Short("20"), outputRowData[5]);
-        assertEquals(new Short("15"), outputRowData[6]);
-        assertEquals(new Short("12"), outputRowData[7]);
+        assertEquals(new Long("62"), outputRowData[3]);
+        assertEquals(new Long("31"), outputRowData[4]);
+        assertEquals(new Long("20"), outputRowData[5]);
+        assertEquals(new Long("15"), outputRowData[6]);
+        assertEquals(new Long("12"), outputRowData[7]);
 
     }
 
@@ -88,15 +86,15 @@ public class Cob2PdiTest extends AbstractTest {
         assertEquals(62L, outputRowData[0]);
         assertEquals("NAME000062", outputRowData[1]);
         assertEquals(new BigDecimal("3100.00"), outputRowData[2]);
-        assertEquals(new Short("62"), outputRowData[3]);
+        assertEquals(new Long("62"), outputRowData[3]);
         assertEquals("AB", outputRowData[4]);
-        assertEquals(new Short("31"), outputRowData[5]);
+        assertEquals(new Long("31"), outputRowData[5]);
         assertEquals("AB", outputRowData[6]);
-        assertEquals(new Short("20"), outputRowData[7]);
+        assertEquals(new Long("20"), outputRowData[7]);
         assertEquals("AB", outputRowData[8]);
-        assertEquals(new Short("15"), outputRowData[9]);
+        assertEquals(new Long("15"), outputRowData[9]);
         assertEquals("AB", outputRowData[10]);
-        assertEquals(new Short("12"), outputRowData[11]);
+        assertEquals(new Long("12"), outputRowData[11]);
         assertEquals("AB", outputRowData[12]);
     }
 
@@ -112,8 +110,8 @@ public class Cob2PdiTest extends AbstractTest {
                 "0190000F00090006C2C5C5C2C4C40001900FC2C2C5C4C5C30000950F0003000000020013000CC2C4C2C1C5C40003800FC1C5C2C2C4C10001900F000600000005001C0013C1C5C2C5C1C30005700FC4C2C3C3C3C20002850F0009000000080023750F",
                 98);
         assertEquals(new BigDecimal("1900.00"), outputRowData[0]);
-        assertEquals(new Short("9"), outputRowData[1]);
-        assertEquals(new Short("6"), outputRowData[2]);
+        assertEquals(new Long("9"), outputRowData[1]);
+        assertEquals(new Long("6"), outputRowData[2]);
         assertEquals("B", outputRowData[3]);
         assertEquals("E", outputRowData[4]);
         assertEquals("E", outputRowData[5]);
@@ -128,10 +126,10 @@ public class Cob2PdiTest extends AbstractTest {
         assertEquals("E", outputRowData[14]);
         assertEquals("C", outputRowData[15]);
         assertEquals(new BigDecimal("9.50"), outputRowData[16]);
-        assertEquals(new Short("3"), outputRowData[17]);
-        assertEquals(new Integer("2"), outputRowData[18]);
-        assertEquals(new Short("19"), outputRowData[19]);
-        assertEquals(new Short("12"), outputRowData[20]);
+        assertEquals(new Long("3"), outputRowData[17]);
+        assertEquals(new Long("2"), outputRowData[18]);
+        assertEquals(new Long("19"), outputRowData[19]);
+        assertEquals(new Long("12"), outputRowData[20]);
         assertEquals("B", outputRowData[21]);
         assertEquals("D", outputRowData[22]);
         assertEquals("B", outputRowData[23]);
@@ -146,10 +144,10 @@ public class Cob2PdiTest extends AbstractTest {
         assertEquals("D", outputRowData[32]);
         assertEquals("A", outputRowData[33]);
         assertEquals(new BigDecimal("19.00"), outputRowData[34]);
-        assertEquals(new Short("6"), outputRowData[35]);
-        assertEquals(new Integer("5"), outputRowData[36]);
-        assertEquals(new Short("28"), outputRowData[37]);
-        assertEquals(new Short("19"), outputRowData[38]);
+        assertEquals(new Long("6"), outputRowData[35]);
+        assertEquals(new Long("5"), outputRowData[36]);
+        assertEquals(new Long("28"), outputRowData[37]);
+        assertEquals(new Long("19"), outputRowData[38]);
         assertEquals("A", outputRowData[39]);
         assertEquals("E", outputRowData[40]);
         assertEquals("B", outputRowData[41]);
@@ -164,8 +162,8 @@ public class Cob2PdiTest extends AbstractTest {
         assertEquals("C", outputRowData[50]);
         assertEquals("B", outputRowData[51]);
         assertEquals(new BigDecimal("28.50"), outputRowData[52]);
-        assertEquals(new Short("9"), outputRowData[53]);
-        assertEquals(new Integer("8"), outputRowData[54]);
+        assertEquals(new Long("9"), outputRowData[53]);
+        assertEquals(new Long("8"), outputRowData[54]);
         assertEquals(new BigDecimal("237.50"), outputRowData[55]);
 
     }
@@ -189,8 +187,8 @@ public class Cob2PdiTest extends AbstractTest {
 
         HostTransformStatus status = new HostTransformStatus();
         Object[] outputRowData = Cob2Pdi.toOutputRowData(outputRowMeta,
-                BindingUtil.newTransformers(qualifiedClassName),
-                HostData.toByteArray(hostPayload),
+                BindingUtil.newTransformers(qualifiedClassName).getHostToJava()
+                        .newBinding(), HostData.toByteArray(hostPayload),
                 Cob2PdiFields.getDefaultHostCharset(), status);
         assertEquals(expectedBytesProcessed, status.getHostBytesProcessed());
         assertNotNull(outputRowData);

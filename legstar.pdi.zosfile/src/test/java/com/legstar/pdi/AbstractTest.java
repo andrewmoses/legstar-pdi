@@ -62,8 +62,8 @@ public abstract class AbstractTest extends TestCase {
      */
     public static void setTestContextClassLoader(final ClassLoader parentCl)
             throws Exception {
-        String[] jarFileNames = Cob2Pdi.getClasspath(
-                "src/test/resources/jars").split(";");
+        String[] jarFileNames = Cob2Pdi.getClasspath("src/test/resources/user")
+                .split(";");
         URL[] jarFileUrls = new URL[jarFileNames.length];
         for (int i = 0; i < jarFileNames.length; i++) {
             jarFileUrls[i] = new File(jarFileNames[i]).toURI().toURL();
