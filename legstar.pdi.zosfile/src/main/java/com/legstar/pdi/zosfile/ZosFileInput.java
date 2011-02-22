@@ -144,6 +144,12 @@ public class ZosFileInput extends BaseStep implements StepInterface {
         }
     }
 
+    /**
+     * Process each record from the input file.
+     * 
+     * @return true if we are not done yet
+     * @throws KettleException if processing fails
+     */
     protected boolean processRow() throws KettleException {
         try {
             // Tell the reader how many bytes we processed last time
