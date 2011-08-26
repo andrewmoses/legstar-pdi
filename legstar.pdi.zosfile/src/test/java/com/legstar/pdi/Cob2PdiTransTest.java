@@ -17,8 +17,7 @@ public class Cob2PdiTransTest extends AbstractTest {
      * Fake a plugin location with a conf folder.
      */
     public void setUp() {
-        System.setProperty(Cob2Pdi.PLUGIN_FOLDER_PROPERTY,
-                "src/main/resources");
+        System.setProperty(Cob2Pdi.PLUGIN_FOLDER_PROPERTY, "src/test/resources");
     }
 
     /**
