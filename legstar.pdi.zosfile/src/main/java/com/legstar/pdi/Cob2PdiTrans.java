@@ -111,8 +111,8 @@ public class Cob2PdiTrans {
             }
 
             Cob2TransResult result = cob2trans.generate(
-                    toTempFile(cobolSource, cobolCharset), cobolCharset,
-                    packageName, createTempDirectory(), classPath);
+                    toTempFile(cobolSource, cobolCharset), packageName,
+                    createTempDirectory(), classPath);
 
             // Deploy the jar to the user folder
             FileUtils.copyFileToDirectory(result.jarFile,

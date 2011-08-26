@@ -15,9 +15,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <pdi.version>4.0.1-GA</pdi.version>
-        <legstar.version>1.4.4</legstar.version>
-        <legstar.cob2xsd.version>0.3.3</legstar.cob2xsd.version>
+        <pdi.version>4.1.0-GA</pdi.version>
+        <legstarCoreVersion>1.5.5</legstarCoreVersion>
+        <legstarVersion>1.5.1</legstarVersion>
         <eclipse.version>3.2.1</eclipse.version>
     </properties>
 
@@ -368,12 +368,12 @@
             <dependency>
                 <groupId>com.legsem.legstar</groupId>
                 <artifactId>legstar-coxbrt</artifactId>
-                <version>${legstar.version}</version>
+                <version>${legstarCoreVersion}</version>
             </dependency>
             <dependency>
                 <groupId>com.legsem.legstar</groupId>
                 <artifactId>legstar-cob2trans</artifactId>
-                <version>${legstar.version}</version>
+                <version>${legstarVersion}</version>
             </dependency>
 
            <!--
@@ -386,10 +386,12 @@
                 <scope>test</scope>
             </dependency>
 
+            <!-- Test cases for COBOL binding -->    
             <dependency>
                 <groupId>com.legsem.legstar</groupId>
-                <artifactId>legstar-coxbgen-cases</artifactId>
-                <version>${legstar.version}</version>
+                <artifactId>legstar-coxbgen</artifactId>
+                <version>${legstarCoreVersion}</version>
+                <type>test-jar</type>
                 <scope>test</scope>
             </dependency>
 
