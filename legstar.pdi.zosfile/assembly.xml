@@ -2,7 +2,7 @@
 Assembly descriptor for the full distribution.
 -->
 <assembly>
-    <id></id>
+    <id>${project.parent.version}</id>
     <formats>
         <format>zip</format>
     </formats>

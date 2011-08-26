@@ -142,11 +142,11 @@
                         <configuration>
                             <tasks>
                                 <property environment="env" />
-                                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}/plugins" overwrite="true" />
+                                <unzip src="${project.build.directory}/${project.artifactId}-${project.parent.version}.zip" dest="${project.build.directory}/plugins" overwrite="true" />
                                 <move todir="${project.build.directory}/plugins/compile">
                                     <fileset dir="${project.build.directory}/plugins/legstar.pdi.zosfile" includes="**/*.jar" />
                                 </move>
-                                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${env.KETTLE_DIR}/plugins" overwrite="true" />
+                                <unzip src="${project.build.directory}/${project.artifactId}-${project.parent.version}.zip" dest="${env.KETTLE_DIR}/plugins" overwrite="true" />
                             </tasks>
                         </configuration>
                         <goals>
