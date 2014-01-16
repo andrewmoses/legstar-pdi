@@ -86,12 +86,12 @@
         <repository>
             <id>ftp-release-repository</id>
             <name>LEGSTAR Distributions Repository</name>
-            <url>ftp://ftp.legsem.com/public_html/legstar/maven/repo</url>
+            <url>ftp://ftp.legsem.com/www/legstar/maven/repo</url>
         </repository>
         <snapshotRepository>
             <id>ftp-snapshots-repository</id>
             <name>LEGSTAR Distributions Snapshot Repository</name>
-            <url>ftp://ftp.legsem.com/public_html/legstar/maven/snapshots</url>
+            <url>ftp://ftp.legsem.com/www/legstar/maven/snapshots</url>
             <uniqueVersion>false</uniqueVersion>
         </snapshotRepository>
     </distributionManagement>
