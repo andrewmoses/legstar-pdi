@@ -15,9 +15,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <pdi.version>4.1.0-GA</pdi.version>
-        <legstarCoreVersion>1.5.5</legstarCoreVersion>
-        <legstarVersion>1.5.1</legstarVersion>
+        <pdi.version>5.0.1-stable</pdi.version>
+        <pdi.test.version>4.4.3.1</pdi.test.version>
+        <legstarCoreVersion>1.5.8</legstarCoreVersion>
+        <legstarVersion>1.5.2</legstarVersion>
         <eclipse.version>3.2.1</eclipse.version>
     </properties>
 
@@ -308,25 +309,25 @@
 
             <!-- PDI dependencies -->
             <dependency>
-                <groupId>pentaho.kettle</groupId>
+                <groupId>pentaho-kettle</groupId>
                 <artifactId>kettle-core</artifactId>
                 <version>${pdi.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>pentaho.kettle</groupId>
+                <groupId>pentaho-kettle</groupId>
                 <artifactId>kettle-engine</artifactId>
                 <version>${pdi.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>pentaho.kettle</groupId>
+                <groupId>pentaho-kettle</groupId>
                 <artifactId>kettle-db</artifactId>
-                <version>${pdi.version}</version>
+                <version>${pdi.test.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>pentaho.kettle</groupId>
+                <groupId>pentaho-kettle</groupId>
                 <artifactId>kettle-ui-swt</artifactId>
                 <version>${pdi.version}</version>
                 <scope>provided</scope>
@@ -334,7 +335,7 @@
             <dependency>
                 <groupId>commons-vfs</groupId>
                 <artifactId>commons-vfs</artifactId>
-                <version>20091118-pentaho</version>
+                <version>20100924-pentaho</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -386,9 +387,9 @@
              TEST dependencies
             -->
             <dependency>
-                <groupId>pentaho.kettle</groupId>
+                <groupId>pentaho-kettle</groupId>
                 <artifactId>kettle-test</artifactId>
-                <version>${pdi.version}</version>
+                <version>${pdi.test.version}</version>
                 <scope>test</scope>
             </dependency>
 

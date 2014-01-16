@@ -172,13 +172,13 @@ public class Cob2PdiFieldsTest extends AbstractTest {
                 null, outputRowMeta);
         ValueMetaInterface valueMeta = outputRowMeta.getValueMeta(0);
         assertEquals("ComNumber", valueMeta.getName());
-        assertEquals("Integer", valueMeta.getTypeDesc());
+        assertEquals(ValueMetaInterface.TYPE_INTEGER, valueMeta.getType());
         valueMeta = outputRowMeta.getValueMeta(1);
         assertEquals("ComName", valueMeta.getName());
-        assertEquals("String", valueMeta.getTypeDesc());
+        assertEquals(ValueMetaInterface.TYPE_STRING, valueMeta.getType());
         valueMeta = outputRowMeta.getValueMeta(2);
         assertEquals("ComAmount", valueMeta.getName());
-        assertEquals("BigNumber", valueMeta.getTypeDesc());
+        assertEquals(ValueMetaInterface.TYPE_BIGNUMBER, valueMeta.getType());
 
     }
 

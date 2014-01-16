@@ -156,7 +156,7 @@ public class ZosFileITCase extends TestCase {
 
         // see if the transformation checks ok
         List<CheckResultInterface> remarks = new ArrayList<CheckResultInterface>();
-        trans.getTransMeta().checkSteps(remarks, false, null);
+        trans.getTransMeta().checkSteps(remarks, false, null, null, null, null);
         for (CheckResultInterface remark : remarks) {
             if (remark.getType() == CheckResultInterface.TYPE_RESULT_ERROR) {
                 fail("Check error: " + fileName + ", " + remark.getErrorCode());
