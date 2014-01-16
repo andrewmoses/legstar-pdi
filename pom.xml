@@ -5,7 +5,7 @@
 
     <groupId>com.legsem.legstar</groupId>
     <artifactId>legstar.pdi</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.6</version>
     <packaging>pom</packaging>
 
     <name>legstar.pdi</name>
@@ -54,9 +54,9 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:svn:http://legstar-pdi.googlecode.com/svn/trunk</connection>
-        <developerConnection>scm:svn:https://legstar-pdi.googlecode.com/svn/trunk</developerConnection>
-        <url>http://legstar-pdi.googlecode.com/svn/trunk</url>
+        <connection>scm:svn:http://legstar-pdi.googlecode.com/svn/tags/legstar.pdi-0.6</connection>
+        <developerConnection>scm:svn:https://legstar-pdi.googlecode.com/svn/tags/legstar.pdi-0.6</developerConnection>
+        <url>http://legstar-pdi.googlecode.com/svn/tags/legstar.pdi-0.6</url>
     </scm>
 
     <mailingLists>
